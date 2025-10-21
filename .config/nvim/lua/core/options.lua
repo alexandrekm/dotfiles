@@ -5,7 +5,7 @@ local o = vim.opt
 local g = vim.g
 
 -- Leader
-g.mapleader = " "
+g.mapleader = ";"
 
 -- UI
 o.number = true
