@@ -1,0 +1,146 @@
+#!/bin/bash
+
+# Package management setup for different operating systems
+
+set -e
+
+# Metadata for this component
+metadata() {
+    echo "📦:Package Management Setup:Install package managers and essential development tools"
+}
+
+# Source utility functions
+source "$(dirname "$0")/../utils/functions.sh"
+
+OS=$(detect_os)
+
+setup_package_manager() {
+    print_status "blue" "Setting up package manager for $OS..."
+    
+    case $OS in
+        "macos")
+            setup_homebrew
+            ;;
+        "linux")
+            setup_linux_packages
+            ;;
+        *)
+            print_status "red" "Unsupported operating system: $OS"
+            exit 1
+            ;;
+    esac
+}
+
+setup_homebrew() {
+    if ! command_exists brew; then
+        print_status "blue" "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        
+        # Add Homebrew to PATH for Apple Silicon Macs
+        if [[ -f "/opt/homebrew/bin/brew" ]]; then
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        fi
+        print_status "green" "Homebrew installed successfully"
+    else
+        print_status "green" "Homebrew already installed"
+    fi
+}
+
+setup_linux_packages() {
+    local distro=$(get_linux_distro)
+    print_status "blue" "Detected Linux distribution: $distro"
+    
+    case $distro in
+        "ubuntu"|"debian")
+            if command_exists apt-get; then
+                print_status "blue" "Updating apt package lists..."
+                sudo apt-get update
+            fi
+            ;;
+        *)
+            print_status "yellow" "Unknown Linux distribution, proceeding with caution..."
+            ;;
+    esac
+}
+
+install_essential_packages() {
+    print_status "blue" "Installing essential packages..."
+    
+    case $OS in
+        "macos")
+            install_macos_packages
+            ;;
+        "linux")
+            install_linux_essential_packages
+            ;;
+    esac
+}
+
+install_macos_packages() {
+    local packages=(
+        "neovim"
+        "git"
+        "curl"
+        "wget"
+        "tree"
+        "jq"
+    )
+    
+    for package in "${packages[@]}"; do
+        if ! brew list "$package" &> /dev/null; then
+            print_status "blue" "Installing $package..."
+            brew install "$package"
+        else
+            print_status "green" "$package already installed"
+        fi
+    done
+}
+
+install_linux_essential_packages() {
+    local distro=$(get_linux_distro)
+    
+    case $distro in
+        "ubuntu"|"debian")
+            install_debian_packages
+            ;;
+        *)
+            print_status "yellow" "Skipping package installation for unknown distribution"
+            ;;
+    esac
+}
+
+install_debian_packages() {
+    local packages=(
+        "neovim"
+        "git"
+        "curl"
+        "wget"
+        "tree"
+        "jq"
+        "ripgrep"
+        "fd-find"
+        "build-essential"
+    )
+    
+    for package in "${packages[@]}"; do
+        if ! dpkg -l | grep -q "^ii  $package "; then
+            print_status "blue" "Installing $package..."
+            sudo apt-get install -y "$package"
+        else
+            print_status "green" "$package already installed"
+        fi
+    done
+}
+
+# Main execution
+main() {
+    setup_package_manager
+    install_essential_packages
+    print_status "green" "Package setup completed!"
+}
+
+# Run if executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

@@ -1,0 +1,362 @@
+#!/bin/bash
+
+# Main bootstrap script for dotfiles
+# This script orchestrates the setup of all components
+
+set -e
+
+# Get the directory of this script (resolve symlinks)
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT_PATH" ]; do
+    SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
+    [[ $SCRIPT_PATH != /* ]] && SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH"
+done
+BOOTSTRAP_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+
+# Source utility functions
+source "$BOOTSTRAP_DIR/utils/functions.sh"
+
+# Color definitions for output
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly PURPLE='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly NC='\033[0m' # No Color
+
+print_banner() {
+    echo -e "${CYAN}"
+    echo "╔═══════════════════════════════════════════╗"
+    echo "║                                           ║"
+    echo "║          🚀 DOTFILES BOOTSTRAP            ║"
+    echo "║                                           ║"
+    echo "║     Setting up your development           ║"
+    echo "║     environment on $(detect_os | tr '[:lower:]' '[:upper:]')                      ║"
+    echo "║                                           ║"
+    echo "╚═══════════════════════════════════════════╝"
+    echo -e "${NC}"
+}
+
+print_section() {
+    local title="$1"
+    echo -e "\n${PURPLE}═══════════════════════════════════════════${NC}"
+    echo -e "${PURPLE} $title${NC}"
+    echo -e "${PURPLE}═══════════════════════════════════════════${NC}\n"
+}
+
+run_setup_script() {
+    local script_path="$1"
+    local description="$2"
+    
+    if [ -x "$script_path" ]; then
+        print_status "blue" "Running: $description"
+        if "$script_path"; then
+            print_status "green" "✅ $description completed successfully"
+        else
+            print_status "red" "❌ $description failed"
+            return 1
+        fi
+    else
+        print_status "yellow" "⚠️  Setup script not found or not executable: $script_path"
+        return 1
+    fi
+}
+
+check_prerequisites() {
+    print_section "🔍 Checking Prerequisites"
+    
+    local missing_deps=()
+    
+    # Check for essential tools
+    if ! command_exists curl; then
+        missing_deps+="curl"
+    fi
+    
+    if ! command_exists git; then
+        missing_deps+="git"
+    fi
+    
+    if [ ${#missing_deps[@]} -gt 0 ]; then
+        print_status "red" "Missing required dependencies: ${missing_deps[*]}"
+        print_status "yellow" "Please install these dependencies and run the bootstrap again"
+        return 1
+    fi
+    
+    print_status "green" "All prerequisites met"
+}
+
+# Discover all available setup scripts
+discover_setup_scripts() {
+    # Scan for setup scripts in subdirectories
+    for setup_file in "$BOOTSTRAP_DIR"/*/setup; do
+        if [ -f "$setup_file" ]; then
+            local component=$(basename "$(dirname "$setup_file")")
+            echo "$component:$setup_file"
+        fi
+    done
+}
+
+# Get metadata for a component by extracting it from the script
+get_component_metadata() {
+    local script_path="$1"
+    
+    if [ -f "$script_path" ]; then
+        # Extract the echo statement from the metadata function
+        local meta_line=$(grep -A 2 'metadata()' "$script_path" | grep 'echo' | head -1 | sed 's/^[[:space:]]*//' | sed 's/echo //')
+        
+        if [ -n "$meta_line" ]; then
+            # Evaluate the echo to expand the string
+            eval echo "$meta_line"
+        else
+            # Fallback if no metadata function found
+            local component=$(basename "$(dirname "$script_path")")
+            echo "⚙️:${component^} Setup:Setup for ${component}"
+        fi
+    else
+        echo "⚙️:Unknown:Unknown component"
+    fi
+}
+
+# Run a setup script by sourcing it and calling main
+run_setup_script() {
+    local script_path="$1"
+    local component="$2"
+    
+    if [ ! -f "$script_path" ]; then
+        print_status "yellow" "Setup script not found: $script_path"
+        return 1
+    fi
+    
+    if [ ! -x "$script_path" ]; then
+        chmod +x "$script_path"
+    fi
+    
+    # Get metadata from the script itself
+    local metadata=$(get_component_metadata "$script_path")
+    local icon="${metadata%%:*}"
+    local title="${metadata#*:}"
+    title="${title%%:*}"
+    local description="${metadata##*:}"
+    
+    print_section "$icon $title"
+    
+    # Source and execute the setup script
+    if (
+        source "$script_path"
+        if declare -f main > /dev/null; then
+            main
+        else
+            print_status "red" "No main function found in $script_path"
+            return 1
+        fi
+    ); then
+        print_status "green" "$title completed successfully"
+        return 0
+    else
+        print_status "red" "$title failed"
+        return 1
+    fi
+}
+
+print_completion_message() {
+    echo -e "\n${GREEN}"
+    echo "╔═══════════════════════════════════════════╗"
+    echo "║                                           ║"
+    echo "║        🎉 BOOTSTRAP COMPLETED!            ║"
+    echo "║                                           ║"
+    echo "║     Your dotfiles are now set up         ║"
+    echo "║     and ready to use!                     ║"
+    echo "║                                           ║"
+    echo "╚═══════════════════════════════════════════╝"
+    echo -e "${NC}"
+    
+    echo -e "\n${BLUE}📝 Next Steps:${NC}"
+    echo "  1. Restart your terminal or run: source ~/.zshrc"
+    echo "  2. Configure Git with your user information:"
+    echo "     git config --global user.name 'Your Name'"
+    echo "     git config --global user.email 'your.email@example.com'"
+    echo "  3. Open Neovim and verify plugins work: nvim"
+    echo "  4. Run ':checkhealth' in Neovim to verify setup"
+    echo ""
+    echo -e "${CYAN}🔧 Customization:${NC}"
+    echo "  • Edit ~/.zshrc.local for additional shell customization"
+    echo "  • Add more plugins to .nvimrc as needed"
+    echo "  • Use 'yadm add <file>' to track new dotfiles"
+    echo ""
+    echo -e "${GREEN}🚀 Happy coding!${NC}"
+}
+
+show_help() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Bootstrap script for setting up dotfiles on Debian/Ubuntu and macOS"
+    echo ""
+    
+    # Discover available components
+    echo "Available Components:"
+    local scripts=$(discover_setup_scripts)
+    while IFS=: read -r component path; do
+        local metadata=$(get_component_metadata "$path")
+        local icon="${metadata%%:*}"
+        local title="${metadata#*:}"
+        title="${title%%:*}"
+        echo "  --$component    $icon $title"
+    done <<< "$scripts"
+    
+    echo ""
+    echo "General Options:"
+    echo "  -h, --help       Show this help message"
+    echo "  --skip-check     Skip prerequisite checks"
+    echo "  --list           List available components"
+    echo ""
+    echo "Examples:"
+    echo "  $0                # Run full bootstrap (all components)"
+    echo "  $0 --nvim         # Setup only Neovim"
+    echo "  $0 --packages     # Setup only packages"
+    echo "  $0 --shell        # Setup only shell"
+}
+
+list_components() {
+    echo "Available Bootstrap Components:"
+    echo ""
+    
+    local scripts=$(discover_setup_scripts)
+    while IFS=: read -r component path; do
+        local metadata=$(get_component_metadata "$path")
+        local icon="${metadata%%:*}"
+        local title="${metadata#*:}"
+        title="${title%%:*}"
+        local description="${metadata##*:}"
+        
+        echo "  $icon $component"
+        echo "     Name: $title"
+        echo "     Description: $description"
+        echo "     Script: $path"
+        echo ""
+    done <<< "$scripts"
+}
+
+main() {
+    local skip_check=false
+    local run_all=true
+    local selected_components=""
+    
+    # Parse command line arguments first to build list of selected components
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            --list)
+                list_components
+                exit 0
+                ;;
+            --skip-check)
+                skip_check=true
+                shift
+                ;;
+            --*)
+                # Extract component name from flag (remove -- prefix)
+                local component="${1#--}"
+                selected_components="$selected_components $component"
+                run_all=false
+                shift
+                ;;
+            *)
+                print_status "red" "Unknown option: $1"
+                show_help
+                exit 1
+                ;;
+        esac
+    done
+    
+    print_banner
+    
+    # Check prerequisites unless skipped
+    if [ "$skip_check" = false ]; then
+        check_prerequisites
+    fi
+    
+    local start_time=$(date +%s)
+    
+    # Build list of components to run
+    local components_to_run=""
+    if [ "$run_all" = true ]; then
+        # Run all components in a specific order
+        local order="packages nvim shell"
+        local all_scripts=$(discover_setup_scripts)
+        
+        # First add components in the predefined order
+        for component in $order; do
+            if echo "$all_scripts" | grep -q "^$component:"; then
+                components_to_run="$components_to_run $component"
+            fi
+        done
+        
+        # Then add any other components not in the predefined order
+        while IFS=: read -r component path; do
+            if ! echo " $order " | grep -q " $component "; then
+                components_to_run="$components_to_run $component"
+            fi
+        done <<< "$all_scripts"
+    else
+        components_to_run="$selected_components"
+    fi
+    
+    # Run selected components
+    local failed_components=""
+    local all_scripts=$(discover_setup_scripts)
+    
+    for component in $components_to_run; do
+        # Find the script path for this component
+        local script_path=""
+        while IFS=: read -r comp path; do
+            if [ "$comp" = "$component" ]; then
+                script_path="$path"
+                break
+            fi
+        done <<< "$all_scripts"
+        
+        if [ -z "$script_path" ]; then
+            print_status "red" "Unknown component: $component"
+            failed_components="$failed_components $component"
+            continue
+        fi
+        
+        if ! run_setup_script "$script_path" "$component"; then
+            failed_components="$failed_components $component"
+        fi
+    done
+    
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+    
+    # Print completion message
+    if [ -z "$failed_components" ]; then
+        print_completion_message
+        print_status "blue" "Bootstrap completed in ${duration} seconds"
+    else
+        echo -e "\n${RED}"
+        echo "╔═══════════════════════════════════════════╗"
+        echo "║                                           ║"
+        echo "║    ⚠️  BOOTSTRAP COMPLETED WITH ERRORS    ║"
+        echo "║                                           ║"
+        echo "╚═══════════════════════════════════════════╝"
+        echo -e "${NC}"
+        
+        print_status "red" "Failed components:$failed_components"
+        print_status "blue" "Bootstrap completed in ${duration} seconds"
+        exit 1
+    fi
+}
+
+# Make all setup scripts executable
+for setup_file in "$BOOTSTRAP_DIR"/*/setup; do
+    [ -f "$setup_file" ] && chmod +x "$setup_file" 2>/dev/null || true
+done
+
+# Run the main function
+main "$@"

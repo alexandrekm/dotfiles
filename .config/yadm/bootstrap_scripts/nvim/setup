@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# Neovim setup and configuration
+
+set -e
+
+# Metadata for this component
+metadata() {
+    echo "🔧:Neovim Setup:Install vim-plug and configure Neovim plugins"
+}
+
+# Source utility functions
+source "$(dirname "$0")/../utils/functions.sh"
+
+OS=$(detect_os)
+
+install_vim_plug() {
+    print_status "blue" "Setting up vim-plug for Neovim..."
+    
+    local plug_file="$HOME/.local/share/nvim/site/autoload/plug.vim"
+    
+    if [ ! -f "$plug_file" ]; then
+        print_status "blue" "Installing vim-plug..."
+        ensure_dir "$(dirname "$plug_file")"
+        curl -fLo "$plug_file" --create-dirs \
+            https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+        print_status "green" "vim-plug installed successfully"
+    else
+        print_status "green" "vim-plug already installed"
+    fi
+}
+
+install_nvim_plugins() {
+    print_status "blue" "Installing Neovim plugins..."
+    
+    if command_exists nvim; then
+        # Check if .nvimrc exists
+        if [ -f "$HOME/.nvimrc" ]; then
+            print_status "blue" "Installing plugins from .nvimrc..."
+            nvim --headless +PlugInstall +qall
+            print_status "green" "Neovim plugins installed successfully"
+        else
+            print_status "yellow" ".nvimrc not found, skipping plugin installation"
+        fi
+    else
+        print_status "red" "Neovim not found, please install it first"
+        return 1
+    fi
+}
+
+create_nvim_config_dir() {
+    print_status "blue" "Creating Neovim configuration directories..."
+    
+    local config_dirs=(
+        "$HOME/.config/nvim"
+        "$HOME/.local/share/nvim"
+        "$HOME/.local/state/nvim"
+        "$HOME/.cache/nvim"
+    )
+    
+    for dir in "${config_dirs[@]}"; do
+        ensure_dir "$dir"
+    done
+}
+
+setup_nvim_health_check() {
+    print_status "blue" "Running Neovim health check..."
+    
+    if command_exists nvim; then
+        # Run health check and save output
+        nvim --headless -c "checkhealth" -c "qall" 2>/dev/null || true
+        print_status "green" "Health check completed (run ':checkhealth' in nvim for details)"
+    else
+        print_status "yellow" "Neovim not available for health check"
+    fi
+}
+
+# Main execution
+main() {
+    print_status "blue" "Starting Neovim setup..."
+    
+    create_nvim_config_dir
+    install_vim_plug
+    install_nvim_plugins
+    setup_nvim_health_check
+    
+    print_status "green" "Neovim setup completed!"
+    print_status "blue" "To verify installation, run: nvim +checkhealth"
+}
+
+# Run if executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
