@@ -103,25 +103,74 @@ When you modify a tracked dotfile:
    yadm push
    ```
 
-## Neovim Configuration Details
+## Neovim Configuration (Lua-based, yadm-native)
 
-The `.nvimrc` file includes:
+This repository uses a modern Lua-based Neovim configuration tracked directly at `~/.config/nvim/` (the yadm way - files are tracked at their actual $HOME paths).
 
-- **Basic settings**: Line numbers, smart indentation, clipboard integration
-- **Plugin management**: Using vim-plug
-- **NERDCommenter**: Enhanced commenting with `<Leader>cc` to comment and `<Leader>cu` to uncomment
-- **EasyMotion**: Quick navigation with `<Leader><Leader>w` to jump to words
+### Structure
 
-### Installing Neovim Plugins
-
-After setting up the dotfiles, install the plugins:
-
-```bash
-# Open Neovim and run the plugin install command
-nvim +PlugInstall +qall
+```
+~/.config/nvim/              # Tracked by yadm at actual path
+├── init.lua                 # Entry point, bootstraps lazy.nvim
+└── lua/
+    ├── core/
+    │   ├── options.lua      # vim.opt settings (tabs, clipboard, etc.)
+    │   └── keymaps.lua      # Key mappings
+    └── plugins/
+        ├── init.lua         # Plugin list (lazy.nvim)
+        └── configs/         # Plugin-specific configs
+            ├── treesitter.lua
+            ├── lsp.lua
+            ├── telescope.lua
+            ├── nerdcommenter.lua
+            └── easymotion.lua
 ```
 
-## Bootstrap System
+### Included Plugins
+
+- **nvim-treesitter** - Advanced syntax highlighting
+- **nvim-lspconfig** - LSP support (pyright, lua_ls, tsserver)
+- **telescope.nvim** - Fuzzy finder
+- **nvim-tree** - File explorer
+- **nerdcommenter** - Smart commenting (`<Leader>cc` to comment, `<Leader>cu` to uncomment)
+- **vim-easymotion** - Quick navigation (`<Leader><Leader>w` to jump to words)
+- **which-key** - Keybinding hints
+
+### Key Settings (migrated from .nvimrc)
+
+- 4-space indentation
+- Line numbers and relative line numbers
+- System clipboard integration
+- Smart indentation and case-insensitive search for EasyMotion
+
+### How It Works with yadm
+
+When you clone this repo with yadm:
+```bash
+yadm clone https://github.com/alexandrekm/dotfiles.git
+```
+
+yadm places `~/.config/nvim/` directly in your home directory (no symlinks needed). The bootstrap script then:
+1. Bootstraps lazy.nvim plugin manager
+2. Attempts a headless plugin sync (plugins will auto-install on first Neovim start if this fails)
+3. Runs a health check
+
+### Manual Setup (if not using bootstrap)
+
+If you want to set up manually:
+```bash
+# Config is already in place from yadm clone
+# Just bootstrap lazy.nvim and start Neovim
+nvim
+# Plugins will install automatically on first start
+```
+
+### Migrating from .nvimrc
+
+The old `.nvimrc` (vim-plug based) has been converted to this Lua layout:
+- vim-plug → lazy.nvim
+- Vimscript settings → `lua/core/options.lua`
+- Plugin configs → `lua/plugins/configs/*.lua`## Bootstrap System
 
 This repository includes a modular bootstrap system that automatically sets up your development environment on both Linux and macOS.
 
