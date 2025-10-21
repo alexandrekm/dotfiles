@@ -1,4 +1,4 @@
- Specify a directory for plugins
+" Specify a directory for plugins
 call plug#begin('~/.local/share/nvim/plugged')
 
 " Plugins
