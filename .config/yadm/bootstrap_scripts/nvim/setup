@@ -37,7 +37,8 @@ install_nvim_plugins() {
         # Check if .nvimrc exists
         if [ -f "$HOME/.nvimrc" ]; then
             print_status "blue" "Installing plugins from .nvimrc..."
-            nvim --headless +PlugInstall +qall
+            # Use -u to explicitly load .nvimrc in headless mode
+            nvim --headless -u "$HOME/.nvimrc" +PlugInstall +qall
             print_status "green" "Neovim plugins installed successfully"
         else
             print_status "yellow" ".nvimrc not found, skipping plugin installation"
