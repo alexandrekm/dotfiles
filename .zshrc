@@ -1,3 +1,6 @@
+# -----------------------------------------------------------------------------
+# Oh My Zsh Configuration
+# -----------------------------------------------------------------------------
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -40,6 +43,15 @@ prompt_aws(){}
 alias watch='timeout 1h watch'
 alias k="kubectl"
 alias vim="nvim"
+
+# -----------------------------------------------------------------------------
+# YADM Aliases
+# -----------------------------------------------------------------------------
+alias yst='yadm status'
+alias yco='yadm checkout'
+alias ya='yadm add'
+alias ycam='yadm commit -m'
+alias ypsup='yadm push'
 
 # -----------------------------------------------------------------------------
 # External Tool Management (Managed Sections)
