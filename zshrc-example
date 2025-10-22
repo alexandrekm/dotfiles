@@ -1,0 +1,341 @@
+### This is just a sample generated file. 
+# ~/.zshrc - Zsh configuration with Oh My Zsh
+# Managed by yadm - https://github.com/alexandrekm/dotfiles
+
+# Oh My Zsh Configuration
+# ======================
+
+# Path to your oh-my-zsh installation
+export ZSH="$HOME/.oh-my-zsh"
+
+# Theme configuration
+# Use "random" for a random theme each time or specify a theme name
+# Popular themes: robbyrussell, agnoster, lambda, arrow, clean
+ZSH_THEME="lambda"
+
+
+
+# Oh My Zsh Settings
+# ==================
+
+# Uncomment to use case-sensitive completion
+# CASE_SENSITIVE="true"
+
+# Uncomment to use hyphen-insensitive completion (case-sensitive completion must be off)
+HYPHEN_INSENSITIVE="true"
+
+# Uncomment to disable bi-weekly auto-update checks
+# DISABLE_AUTO_UPDATE="true"
+
+# Uncomment to automatically update without prompting
+DISABLE_UPDATE_PROMPT="true"
+
+# Uncomment to change how often to auto-update (in days)
+export UPDATE_ZSH_DAYS=7
+
+# Uncomment to disable colors in ls
+# DISABLE_LS_COLORS="true"
+
+# Uncomment to disable auto-setting terminal title
+# DISABLE_AUTO_TITLE="true"
+
+# Uncomment to enable command auto-correction
+ENABLE_CORRECTION="true"
+
+# Uncomment to display red dots whilst waiting for completion
+COMPLETION_WAITING_DOTS="true"
+
+# Uncomment to disable marking untracked files under VCS as dirty
+# DISABLE_UNTRACKED_FILES_DIRTY="true"
+
+# Command execution timestamp format
+HIST_STAMPS="yyyy-mm-dd"
+
+# Plugins
+# =======
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
+plugins=(
+    git
+    sudo
+    extract
+    colored-man-pages
+    command-not-found
+    history-substring-search
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+    zsh-completions
+)
+
+# Platform-specific plugins
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    plugins+=(macos brew)
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    plugins+=(ubuntu debian)
+fi
+
+# Load Oh My Zsh
+source $ZSH/oh-my-zsh.sh
+
+# User Configuration
+# ==================
+
+# Language environment
+export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='nvim'
+fi
+
+# History Configuration
+# ====================
+
+# History file location and size
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+
+# History options
+setopt APPEND_HISTORY          # Append to history file
+setopt SHARE_HISTORY           # Share history between sessions
+setopt HIST_EXPIRE_DUPS_FIRST  # Expire duplicate entries first
+setopt HIST_IGNORE_DUPS        # Don't record an entry that was just recorded
+setopt HIST_IGNORE_ALL_DUPS    # Delete old recorded entry if new entry is a duplicate
+setopt HIST_FIND_NO_DUPS       # Don't display a line previously found
+setopt HIST_IGNORE_SPACE       # Don't record an entry starting with a space
+setopt HIST_SAVE_NO_DUPS       # Don't write duplicate entries in the history file
+setopt HIST_REDUCE_BLANKS      # Remove superfluous blanks before recording entry
+setopt HIST_VERIFY             # Don't execute immediately upon history expansion
+
+# Path Configuration
+# ==================
+
+# Add local bin directories to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
+# Platform-specific PATH additions
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Homebrew paths for both Intel and Apple Silicon Macs
+    if [[ -d "/opt/homebrew/bin" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -d "/usr/local/bin" ]]; then
+        export PATH="/usr/local/bin:$PATH"
+    fi
+fi
+
+# Development environment paths
+if [[ -d "$HOME/.cargo/bin" ]]; then
+    export PATH="$HOME/.cargo/bin:$PATH"
+fi
+
+if [[ -d "$HOME/go/bin" ]]; then
+    export PATH="$HOME/go/bin:$PATH"
+fi
+
+# Aliases
+# =======
+
+# Enhanced ls
+if command -v exa > /dev/null 2>&1; then
+    alias ls='exa'
+    alias la='exa -la'
+    alias ll='exa -l'
+    alias tree='exa --tree'
+else
+    alias la='ls -la'
+    alias ll='ls -l'
+fi
+
+# Git aliases (complement Oh My Zsh git plugin)
+alias gst='git status'
+alias gco='git checkout'
+alias gcb='git checkout -b'
+alias gaa='git add .'
+alias gcm='git commit -m'
+alias gp='git push'
+alias gl='git pull'
+alias glog='git log --oneline --graph --decorate'
+alias gdiff='git diff'
+alias gstash='git stash'
+alias gpop='git stash pop'
+
+# Navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
+# Useful shortcuts
+alias h='history'
+alias j='jobs -l'
+alias c='clear'
+alias grep='grep --color=auto'
+alias mkdir='mkdir -pv'
+alias path='echo -e ${PATH//:/\\n}'
+alias now='date +"%T"'
+alias nowtime=now
+alias nowdate='date +"%d-%m-%Y"'
+
+# System monitoring
+alias top='htop'
+alias df='df -H'
+alias du='du -ch'
+alias ps='ps auxf'
+
+# Editor shortcuts
+alias vim='nvim'
+alias vi='nvim'
+
+# Python aliases
+alias python='python3'
+alias pip='pip3'
+
+# Development shortcuts
+alias serve='python3 -m http.server'
+alias myip='curl ipinfo.io/ip'
+alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
+
+# Platform-specific aliases
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias brewup='brew update && brew upgrade && brew cleanup'
+    alias flushdns='sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder'
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    alias aptup='sudo apt update && sudo apt upgrade && sudo apt autoremove'
+    alias open='xdg-open'
+fi
+
+# Functions
+# =========
+
+# Create a new directory and enter it
+mkcd() {
+    mkdir -p "$@" && cd "$_"
+}
+
+# Extract various archive formats
+extract() {
+    if [ -f $1 ] ; then
+        case $1 in
+            *.tar.bz2)   tar xjf $1     ;;
+            *.tar.gz)    tar xzf $1     ;;
+            *.bz2)       bunzip2 $1     ;;
+            *.rar)       unrar e $1     ;;
+            *.gz)        gunzip $1      ;;
+            *.tar)       tar xf $1      ;;
+            *.tbz2)      tar xjf $1     ;;
+            *.tgz)       tar xzf $1     ;;
+            *.zip)       unzip $1       ;;
+            *.Z)         uncompress $1  ;;
+            *.7z)        7z x $1        ;;
+            *)     echo "'$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}
+
+# Find process by name
+findproc() {
+    ps aux | grep -v grep | grep "$@" -i --color=auto
+}
+
+# Quick file search
+ff() {
+    find . -type f -name "*$1*"
+}
+
+# Weather function
+weather() {
+    local city="${1:-}"
+    curl -s "wttr.in/${city}" | head -37
+}
+
+# Git clone and cd into directory
+gclone() {
+    git clone "$1" && cd "$(basename "$1" .git)"
+}
+
+# Create a backup of a file
+backup() {
+    cp "$1"{,.bak-$(date +%Y%m%d-%H%M%S)}
+}
+
+# Environment Variables
+# ====================
+
+# GPG configuration
+export GPG_TTY=$(tty)
+
+# Node.js configuration (if using nvm)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# Python configuration
+export PYTHONDONTWRITEBYTECODE=1
+
+# Less configuration (for better man pages)
+export LESS='-R'
+export LESSOPEN='|~/.lessfilter %s'
+
+# Completion Configuration
+# ========================
+
+# Load additional completions
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+
+# Enable completion caching
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zsh/cache
+
+# Case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# Colored completion
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# Key Bindings
+# ============
+
+# Use vi keybindings (uncomment if preferred)
+# bindkey -v
+
+# Emacs keybindings (default)
+bindkey -e
+
+# History search
+bindkey '^R' history-incremental-search-backward
+bindkey '^S' history-incremental-search-forward
+
+# Move by word
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
+
+# Local Customization
+# ===================
+
+# Source local customizations if they exist
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+
+
+# Final Setup
+# ===========
+
+# Auto-suggestions configuration
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666666,bg=bold"
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
+# Syntax highlighting configuration
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor)
+
+# Welcome message (comment out if not desired)
+if [[ -o interactive ]]; then
+    echo "🚀 Welcome to your enhanced Zsh environment with Oh My Zsh!"
+    echo "🎨 Using the lambda theme for a clean, minimal prompt"
+    echo "📚 Type 'alias' to see available shortcuts"
+fi

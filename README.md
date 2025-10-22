@@ -37,6 +37,76 @@ To set up these dotfiles on a new machine:
    ~/.config/yadm/bootstrap
    ```
 
+## Encrypted Files Setup (Motive Configuration)
+
+This repository uses yadm's encryption feature to securely store sensitive configuration files for the "motive" class setup.
+
+### Initial Encryption Setup
+
+Before working with encrypted files, you need to configure GPG and yadm properly:
+
+1. **Set up GPG environment** (required for encryption to work properly):
+   ```bash
+   export GPG_TTY="$(tty)"; echo "pinentry-program $(command -v pinentry-tty || command -v pinentry)" >> ~/.gnupg/gpg-agent.conf; pkill -f gpg-agent
+   ```
+
+2. **Configure yadm for motive class**:
+   ```bash
+   yadm config local.class motive
+   ```
+
+### Working with Encrypted Files
+
+Once the setup is complete, you can work with encrypted files:
+
+1. **Add files to be encrypted** by editing the `.yadm/encrypt` file:
+   ```bash
+   yadm add .yadm/encrypt
+   ```
+
+2. **Encrypt files**:
+   ```bash
+   yadm encrypt
+   ```
+
+3. **Decrypt files** (when pulling on a new machine):
+   ```bash
+   yadm decrypt
+   ```
+
+4. **List encrypted files**:
+   ```bash
+   yadm encrypt --list
+   ```
+
+### Class-Specific Configuration
+
+The "motive" class allows you to have different configurations for different environments or purposes. Files with the `##class.motive` suffix will only be processed when the class is set to "motive".
+
+Example file naming:
+- `.ssh/config##class.motive` - SSH config specific to motive setup
+- `.aws/credentials##class.motive` - AWS credentials for motive environment
+
+### Troubleshooting Encryption
+
+If you encounter issues with encryption:
+
+1. **Check GPG setup**:
+   ```bash
+   gpg --list-keys
+   echo "test" | gpg --clearsign
+   ```
+
+2. **Re-run GPG environment setup**:
+   ```bash
+   export GPG_TTY="$(tty)"; echo "pinentry-program $(command -v pinentry-tty || command -v pinentry)" >> ~/.gnupg/gpg-agent.conf; pkill -f gpg-agent
+   ```
+
+3. **Verify yadm class configuration**:
+   ```bash
+   yadm config local.class
+   ```
+
 ## Managing Your Dotfiles with Yadm
 
 ### Basic Yadm Commands
