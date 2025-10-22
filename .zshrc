@@ -51,7 +51,7 @@ alias yst='yadm status'
 alias yco='yadm checkout'
 alias ya='yadm add'
 alias ycam='yadm commit -m'
-alias yp='yadm push'
+alias ypsup='yadm push'
 
 # -----------------------------------------------------------------------------
 # External Tool Management (Managed Sections)
