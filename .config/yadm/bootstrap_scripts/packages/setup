@@ -85,6 +85,8 @@ install_macos_packages() {
         "wget"
         "tree"
         "jq"
+        "zsh"
+        "watch"
     )
     
     for package in "${packages[@]}"; do
@@ -121,6 +123,8 @@ install_debian_packages() {
         "ripgrep"
         "fd-find"
         "build-essential"
+        "zsh"
+        "watch"
     )
     
     for package in "${packages[@]}"; do

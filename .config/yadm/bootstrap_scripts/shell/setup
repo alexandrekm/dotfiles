@@ -1,0 +1,141 @@
+#!/bin/bash
+
+# Shell configuration setup with Oh My Zsh
+
+set -e
+
+# Metadata for this component
+metadata() {
+    echo "🐚:Shell & Oh My Zsh Setup:Install and configure Oh My Zsh with useful plugins and themes"
+}
+
+# Source utility functions
+source "$(dirname "${BASH_SOURCE[0]}")/../utils/functions.sh"
+
+OS=$(detect_os)
+
+install_oh_my_zsh() {
+    print_status "blue" "Installing Oh My Zsh..."
+    
+    if [ -d "$HOME/.oh-my-zsh" ]; then
+        print_status "green" "Oh My Zsh already installed"
+        return 0
+    fi
+    
+    # Download and install Oh My Zsh non-interactively
+    export RUNZSH=no
+    export CHSH=no
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || {
+        print_status "red" "Failed to install Oh My Zsh"
+        return 1
+    }
+    
+    print_status "green" "Oh My Zsh installed successfully"
+}
+
+install_oh_my_zsh_plugins() {
+    print_status "blue" "Installing Oh My Zsh plugins..."
+    
+    local zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+    
+    # Define plugins to install with their GitHub repositories
+    local plugins=(
+        "zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions.git"
+        "zsh-completions:https://github.com/zsh-users/zsh-completions.git"
+    )
+    
+    # Install each plugin
+    for plugin_info in "${plugins[@]}"; do
+        local plugin_name="${plugin_info%%:*}"
+        local plugin_repo="${plugin_info#*:}"
+        local plugin_dir="$zsh_custom/plugins/$plugin_name"
+        
+        if [ ! -d "$plugin_dir" ]; then
+            print_status "blue" "Installing $plugin_name..."
+            git clone "$plugin_repo" "$plugin_dir"
+        else
+            print_status "green" "$plugin_name already installed"
+        fi
+    done
+    
+    print_status "green" "Oh My Zsh plugins installed successfully"
+}
+
+setup_directories() {
+    print_status "blue" "Creating useful directories..."
+    
+    local dirs=(
+        "$HOME/projects"
+        "$HOME/.local/bin"
+        "$HOME/.config"
+    )
+    
+    for dir in "${dirs[@]}"; do
+        ensure_dir "$dir"
+    done
+}
+
+change_default_shell() {
+    print_status "blue" "Setting up Zsh as default shell..."
+    
+    # Check if zsh is already the default shell
+    if [[ "$SHELL" == */zsh ]]; then
+        print_status "green" "Zsh is already the default shell"
+        return 0
+    fi
+    
+    # Get the path to zsh
+    local zsh_path
+    if command_exists zsh; then
+        zsh_path=$(which zsh)
+    else
+        print_status "red" "Zsh not found. Please install zsh first."
+        return 1
+    fi
+    
+    # Check if zsh is in /etc/shells
+    if ! grep -q "$zsh_path" /etc/shells; then
+        print_status "blue" "Adding $zsh_path to /etc/shells..."
+        echo "$zsh_path" | sudo tee -a /etc/shells > /dev/null
+    fi
+    
+    # Change the default shell
+    print_status "blue" "Changing default shell to zsh..."
+    chsh -s "$zsh_path" || {
+        print_status "yellow" "Could not change default shell automatically."
+        print_status "yellow" "Please run: chsh -s $zsh_path"
+    }
+    
+    print_status "green" "Default shell setup completed"
+}
+
+# Main execution
+main() {
+    print_status "blue" "Setting up shell environment..."
+    
+    # Ensure zsh is available
+    if ! command_exists zsh; then
+        print_status "red" "Zsh is not installed. Please run the packages setup first."
+        return 1
+    fi
+    
+    # Install Oh My Zsh and plugins
+    install_oh_my_zsh
+    #install_oh_my_zsh_plugins
+    
+    # Setup configurations
+    setup_directories
+    
+    # Change default shell
+    change_default_shell
+    
+    print_status "green" "Shell setup completed!"
+    print_status "blue" "Note: You may need to restart your terminal for changes to take effect"
+    print_status "blue" "The lambda theme provides a clean, minimal prompt"
+}
+
+# Run if executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

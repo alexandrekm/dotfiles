@@ -220,6 +220,8 @@ Run specific components:
 - Runs health checks
 
 #### **Shell Setup** (`shell/setup`)
+- Installs and configures Oh My Zsh with useful plugins
+- Sets up lambda theme for a clean, minimal prompt
 - Creates comprehensive `.zshrc` with useful defaults
 - Creates `.bashrc` for Bash compatibility
 - Sets up `.gitconfig` with sensible defaults

@@ -1,0 +1,59 @@
+# Path to your oh-my-zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
+
+ZSH_THEME="amuse"
+
+# Uncomment the following line to use case-sensitive completion.
+CASE_SENSITIVE="true"
+
+# Uncomment the following line to display red dots whilst waiting for completion.
+COMPLETION_WAITING_DOTS="true"
+
+# Which plugins would you like to load?
+plugins=(git aws docker zsh-autosuggestions)
+bindkey '^X' create_completion
+
+# -----------------------------------------------------------------------------
+# VS Code Integration
+# -----------------------------------------------------------------------------
+# Check if running inside VS Code's integrated terminal
+if [[ "$GIT_PAGER" == "cat" ]]; then
+    PROMPT='🤖 copilot %% '
+    export AWS_PAGER=""
+else
+    source $ZSH/oh-my-zsh.sh
+fi
+
+# -----------------------------------------------------------------------------
+# Prompt Customization
+# -----------------------------------------------------------------------------
+prompt_context() {
+  if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
+    prompt_segment black default "%(!.%{%F{yellow}%}.)am"
+  fi
+}
+prompt_aws(){}
+
+# -----------------------------------------------------------------------------
+# General Aliases
+# -----------------------------------------------------------------------------
+alias watch='timeout 1h watch'
+alias k="kubectl"
+alias vim="nvim"
+
+# -----------------------------------------------------------------------------
+# External Tool Management (Managed Sections)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Yadm Drop-in System
+# -----------------------------------------------------------------------------
+# Load OS-specific configuration (auto-selected by yadm)
+if [[ -r "$HOME/.zshrc.os" ]]; then
+    source "$HOME/.zshrc.os"
+fi
+
+# Load system-specific configuration (selected by local.class)
+if [[ -r "$HOME/.zshrc.system" ]]; then
+    source "$HOME/.zshrc.system"
+fi
