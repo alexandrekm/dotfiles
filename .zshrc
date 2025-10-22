@@ -50,6 +50,7 @@ alias myip='curl ipinfo.io/ip'
 # -----------------------------------------------------------------------------
 alias yst='yadm status'
 alias yco='yadm checkout'
+alias yp='yadm pull'
 alias ya='yadm add'
 alias ycam='yadm commit -m'
 alias ypsup='yadm push'
