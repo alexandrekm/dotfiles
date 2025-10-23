@@ -25,12 +25,12 @@ install_oh_my_zsh() {
     # Download and install Oh My Zsh non-interactively
     export RUNZSH=no
     export CHSH=no
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || {
+    if sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"; then
+        print_status "green" "Oh My Zsh installed successfully"
+    else
         print_status "red" "Failed to install Oh My Zsh"
-        return 1
-    }
-    
-    print_status "green" "Oh My Zsh installed successfully"
+        print_status "yellow" "Continuing with plugin installation anyway..."
+    fi
 }
 
 install_oh_my_zsh_plugins() {
