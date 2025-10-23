@@ -13,7 +13,7 @@ CASE_SENSITIVE="true"
 COMPLETION_WAITING_DOTS="true"
 
 # Which plugins would you like to load?
-plugins=(git aws docker zsh-autosuggestions)
+plugins=(git aws docker zsh-autosuggestions zsh-completions you-should-use)
 bindkey '^X' create_completion
 
 # -----------------------------------------------------------------------------
