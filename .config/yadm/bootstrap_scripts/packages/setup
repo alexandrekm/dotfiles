@@ -95,6 +95,12 @@ install_macos_packages() {
         if ! brew list "$package" &> /dev/null; then
             print_status "blue" "Installing $package..."
             brew install "$package"
+            
+            # Remove default .zshrc if we just installed zsh, so yadm can manage it
+            if [[ "$package" == "zsh" ]] && [[ -f "$HOME/.zshrc" ]]; then
+                print_status "blue" "Removing default .zshrc to allow yadm management..."
+                rm "$HOME/.zshrc"
+            fi
         else
             print_status "green" "$package already installed"
         fi
@@ -134,6 +140,12 @@ install_debian_packages() {
         if ! dpkg -l | grep -q "^ii  $package "; then
             print_status "blue" "Installing $package..."
             sudo apt-get install -y "$package"
+            
+            # Remove default .zshrc if we just installed zsh, so yadm can manage it
+            if [[ "$package" == "zsh" ]] && [[ -f "$HOME/.zshrc" ]]; then
+                print_status "blue" "Removing default .zshrc to allow yadm management..."
+                rm "$HOME/.zshrc"
+            fi
         else
             print_status "green" "$package already installed"
         fi
