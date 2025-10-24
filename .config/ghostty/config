@@ -1,7 +1,6 @@
 theme = Catppuccin Mocha
 #theme = Gruvbox Dark
 #title = " "
-tab-bar-position = left
 macos-titlebar-proxy-icon = hidden
 background-opacity = 0.9
 background-blur = 15
