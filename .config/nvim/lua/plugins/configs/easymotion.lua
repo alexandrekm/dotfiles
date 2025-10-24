@@ -3,6 +3,9 @@
 -- ============================================================================
 -- EasyMotion provides quick navigation by highlighting jump targets
 
+-- Local keymap function
+local map = vim.keymap.set
+
 -- Search behavior
 vim.g.EasyMotion_smartcase = 1          -- Use case-insensitive search (smart case)
 
