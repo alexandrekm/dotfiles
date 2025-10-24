@@ -90,6 +90,7 @@ install_macos_packages() {
         "gpg"
         "watch"
         "bat"
+        "lsd"
     )
     
     for package in "${packages[@]}"; do
@@ -136,6 +137,7 @@ install_debian_packages() {
         "zsh"
         "watch"
         "bat"
+        "lsd"
     )
     
     for package in "${packages[@]}"; do

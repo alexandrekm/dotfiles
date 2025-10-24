@@ -47,9 +47,12 @@ alias vim="nvim"
 alias myip='curl ipinfo.io/ip'
 
 # Use bat instead of cat for better syntax highlighting
-alias cat='bat --paging=never'
+alias cat='bat --paging=never --style=plain'
 alias less='bat'
 alias more='bat'
+
+# Use lsd instead of ls for better file listing
+alias ls='lsd'
 
 # -----------------------------------------------------------------------------
 # YADM Aliases
