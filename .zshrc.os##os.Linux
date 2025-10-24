@@ -2,3 +2,11 @@
 # Linux Configuration
 # -----------------------------------------------------------------------------
 echo "🐧 Linux configuration loaded"
+
+# -----------------------------------------------------------------------------
+# Linux Aliases
+# -----------------------------------------------------------------------------
+# Use batcat instead of cat for better syntax highlighting (Ubuntu/Debian)
+alias cat='batcat --paging=never --style=plain'
+alias less='batcat'
+alias more='batcat'

@@ -6,3 +6,11 @@ echo "🍎 macOS configuration loaded"
 # Clean PATH setup - let macOS handle system paths automatically
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$PATH"
 export PATH="$PATH:${HOME}/bin"
+
+# -----------------------------------------------------------------------------
+# macOS Aliases
+# -----------------------------------------------------------------------------
+# Use bat instead of cat for better syntax highlighting
+alias cat='bat --paging=never --style=plain'
+alias less='bat'
+alias more='bat'
