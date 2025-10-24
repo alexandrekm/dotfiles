@@ -89,6 +89,7 @@ install_macos_packages() {
         "pinentry-mac"
         "gpg"
         "watch"
+        "bat"
     )
     
     for package in "${packages[@]}"; do
@@ -134,6 +135,7 @@ install_debian_packages() {
         "gpg"
         "zsh"
         "watch"
+        "bat"
     )
     
     for package in "${packages[@]}"; do

@@ -46,6 +46,11 @@ alias k="kubectl"
 alias vim="nvim"
 alias myip='curl ipinfo.io/ip'
 
+# Use bat instead of cat for better syntax highlighting
+alias cat='bat'
+alias less='bat'
+alias more='bat'
+
 # -----------------------------------------------------------------------------
 # YADM Aliases
 # -----------------------------------------------------------------------------
