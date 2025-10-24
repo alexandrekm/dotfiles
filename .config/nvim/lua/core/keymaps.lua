@@ -19,11 +19,4 @@ map('n', '<C-j>', '<C-w>j', opts)    -- Move to window below
 map('n', '<C-k>', '<C-w>k', opts)    -- Move to window above
 map('n', '<C-l>', '<C-w>l', opts)    -- Move to right window
 
--- ============================================================================
--- EASYMOTION PLUGIN
--- ============================================================================
--- EasyMotion provides quick navigation by highlighting jump targets
--- Jump to word beginning (bidirectional - highlights words above AND below cursor)
-map('n', '<Leader>l', '<Plug>(easymotion-bd-w)', { noremap = false, silent = true })
-
 return {}
