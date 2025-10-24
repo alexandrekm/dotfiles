@@ -47,7 +47,7 @@ alias vim="nvim"
 alias myip='curl ipinfo.io/ip'
 
 # Use bat instead of cat for better syntax highlighting
-alias cat='bat'
+alias cat='bat --paging=never'
 alias less='bat'
 alias more='bat'
 
