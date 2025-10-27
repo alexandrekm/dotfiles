@@ -45,6 +45,7 @@ alias watch='timeout 1h watch'
 alias k="kubectl"
 alias vim="nvim"
 alias myip='curl ipinfo.io/ip'
+alias reload='source ~/.zshrc'
 
 # Use lsd instead of ls for better file listing
 alias ls='lsd'
