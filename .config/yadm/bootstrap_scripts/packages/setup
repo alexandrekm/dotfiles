@@ -91,6 +91,7 @@ install_macos_packages() {
         "watch"
         "bat"
         "lsd"
+        "font-fira-code-nerd-font"
     )
     
     for package in "${packages[@]}"; do
@@ -154,6 +155,46 @@ install_debian_packages() {
             print_status "green" "$package already installed"
         fi
     done
+    
+    # Install FiraCode Nerd Font for Linux
+    install_linux_nerd_font
+}
+
+install_linux_nerd_font() {
+    local font_dir="$HOME/.local/share/fonts"
+    local font_name="FiraCode Nerd Font"
+    
+    # Check if font is already installed
+    if fc-list | grep -i "fira.*code.*nerd" > /dev/null 2>&1; then
+        print_status "green" "FiraCode Nerd Font already installed"
+        return 0
+    fi
+    
+    print_status "blue" "Installing FiraCode Nerd Font..."
+    
+    # Create fonts directory
+    mkdir -p "$font_dir"
+    
+    # Download and install FiraCode Nerd Font
+    local temp_dir=$(mktemp -d)
+    cd "$temp_dir"
+    
+    curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/FiraCode.zip" -o FiraCode.zip
+    
+    if [[ $? -eq 0 ]]; then
+        unzip -q FiraCode.zip -d "$font_dir/"
+        
+        # Refresh font cache
+        fc-cache -fv > /dev/null 2>&1
+        
+        print_status "green" "FiraCode Nerd Font installed successfully"
+    else
+        print_status "red" "Failed to download FiraCode Nerd Font"
+    fi
+    
+    # Cleanup
+    cd - > /dev/null
+    rm -rf "$temp_dir"
 }
 
 # Main execution
