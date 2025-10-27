@@ -91,6 +91,9 @@ install_macos_packages() {
         "watch"
         "bat"
         "lsd"
+        "dust"
+        "duf"
+        "broot"
         "font-fira-code-nerd-font"
     )
     
@@ -139,6 +142,9 @@ install_debian_packages() {
         "watch"
         "bat"
         "lsd"
+        "dust"
+        "duf"
+        "broot"
     )
     
     for package in "${packages[@]}"; do

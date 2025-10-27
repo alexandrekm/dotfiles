@@ -49,8 +49,11 @@ alias vim="nvim"
 alias myip='curl ipinfo.io/ip'
 alias reload='source ~/.zshrc'
 
-# Use lsd instead of ls for better file listing
+# Use modern alternatives for better output
 alias ls='lsd'
+alias du='dust'
+alias df='duf'
+alias tree='broot'
 
 # -----------------------------------------------------------------------------
 # YADM Aliases
