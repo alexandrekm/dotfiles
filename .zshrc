@@ -5,7 +5,9 @@
 export ZSH="$HOME/.oh-my-zsh"
 export TERM=xterm-256color
 
-ZSH_THEME="amuse"
+# ZSH_THEME="bira"
+ZSH_THEME="intheloop"
+# ZSH_THEME="amuse"
 
 # Uncomment the following line to use case-sensitive completion.
 CASE_SENSITIVE="true"
