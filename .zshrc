@@ -121,3 +121,5 @@ fi
 if [[ -r "$HOME/.zshrc.system" ]]; then
     source "$HOME/.zshrc.system"
 fi
+
+source ${HOME}/.config/broot/launcher/bash/br
