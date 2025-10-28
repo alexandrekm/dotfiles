@@ -11,10 +11,14 @@ leap.setup({
   safe_labels = {},        -- Use all labels for jumping
 })
 
--- Set default keymaps
+-- Set up keymaps manually (replaces deprecated create_default_mappings)
 -- s: leap forward in current window
--- S: leap backward in current window
-leap.create_default_mappings()
+vim.keymap.set('n', 's', '<Plug>(leap-forward)', { noremap = false, silent = true })
+vim.keymap.set('n', 'S', '<Plug>(leap-backward)', { noremap = false, silent = true })
+
+-- Visual and operator-pending mode mappings
+vim.keymap.set({'x', 'o'}, 's', '<Plug>(leap-forward)', { noremap = false, silent = true })
+vim.keymap.set({'x', 'o'}, 'S', '<Plug>(leap-backward)', { noremap = false, silent = true })
 
 -- Additional keymap to match your EasyMotion workflow
 -- Jump to word beginning (bidirectional - searches in all directions)

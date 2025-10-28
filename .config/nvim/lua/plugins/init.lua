@@ -15,4 +15,13 @@ local plugins = {
   },
 }
 
-require('lazy').setup(plugins)
+require('lazy').setup(plugins, {
+  ui = {
+    -- Disable 'S' keybinding in Lazy UI to avoid conflict with leap.nvim
+    keys = {
+      close = '<Esc>',
+      profile_sort = '<nop>',  -- Disable S keybinding
+      profile_filter = '<nop>',
+    },
+  },
+})
