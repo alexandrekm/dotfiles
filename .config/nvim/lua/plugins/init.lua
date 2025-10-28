@@ -8,10 +8,10 @@ local plugins = {
     config = function() require('plugins.configs.nerdcommenter') end,
   },
 
-  -- EasyMotion (from .nvimrc)
+  -- Leap (navigation plugin)
   {
-    'easymotion/vim-easymotion',
-    config = function() require('plugins.configs.easymotion') end,
+    'ggandor/leap.nvim',
+    config = function() require('plugins.configs.leap') end,
   },
 }
 
