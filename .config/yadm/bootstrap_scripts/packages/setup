@@ -94,6 +94,7 @@ install_macos_packages() {
         "dust"
         "duf"
         "broot"
+        "atuin"
         "font-fira-code-nerd-font"
     )
     
@@ -162,8 +163,29 @@ install_debian_packages() {
         fi
     done
     
+    # Install atuin for Linux
+    install_atuin_linux
+    
     # Install FiraCode Nerd Font for Linux
     install_linux_nerd_font
+}
+
+install_atuin_linux() {
+    if command_exists atuin; then
+        print_status "green" "atuin already installed"
+        return 0
+    fi
+    
+    print_status "blue" "Installing atuin..."
+    
+    # Install atuin using the official installer
+    bash <(curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh)
+    
+    if command_exists atuin; then
+        print_status "green" "atuin installed successfully"
+    else
+        print_status "red" "Failed to install atuin"
+    fi
 }
 
 install_linux_nerd_font() {

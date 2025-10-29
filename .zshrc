@@ -109,6 +109,11 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # External Tool Management (Managed Sections)
 # -----------------------------------------------------------------------------
 
+# Atuin - Shell history sync and search
+if command -v atuin &> /dev/null; then
+    eval "$(atuin init zsh)"
+fi
+
 # -----------------------------------------------------------------------------
 # Yadm Drop-in System
 # -----------------------------------------------------------------------------
