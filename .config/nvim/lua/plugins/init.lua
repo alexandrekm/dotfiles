@@ -8,6 +8,17 @@ local plugins = {
     'ggandor/leap.nvim',
     config = function() require('plugins.configs.leap') end,
   },
+
+  -- Backport native commenting for Neovim < 0.10
+  -- This provides 'gcc' and 'gc' functionality on older versions like Ubuntu 22.04's defaults
+  {
+    'echasnovski/mini.comment',
+    version = '*',
+    cond = function() return vim.fn.has('nvim-0.10') == 0 end,
+    config = function()
+      require('mini.comment').setup()
+    end,
+  },
 }
 
 require('lazy').setup(plugins, {
