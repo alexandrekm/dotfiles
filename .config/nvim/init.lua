@@ -21,6 +21,10 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- Enable filetype plugins and syntax highlighting (crucial for native commenting)
+vim.cmd.filetype("plugin", "indent", "on")
+vim.cmd.syntax("on")
+
 -- Core settings and keymaps
 pcall(require, 'core.options')
 pcall(require, 'core.keymaps')
