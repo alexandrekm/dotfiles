@@ -47,9 +47,29 @@ o.hidden = true                      -- Allow switching buffers without saving c
 -- FILE HANDLING & BACKUP
 -- ============================================================================
 -- Swap and backup files
+-- Swap and backup files
 o.swapfile = true                    -- Enable swap files for crash recovery
 o.backup = true                      -- Create backup files before overwriting
 o.writebackup = false                -- Don't create backup copy during write (backup is renamed instead)
+
+-- Centralize backup, swap, and undo files to avoid cluttering the project directory
+-- The // at the end tells Neovim to use the full path of the file as the filename
+-- to prevent collisions.
+local state_dir = vim.fn.stdpath("state")
+o.backupdir = state_dir .. "/backup//"
+o.directory = state_dir .. "/swap//"
+o.undodir = state_dir .. "/undo//"
+
+-- Ensure storage directories exist
+if vim.fn.isdirectory(state_dir .. "/backup") == 0 then
+  vim.fn.mkdir(state_dir .. "/backup", "p")
+end
+if vim.fn.isdirectory(state_dir .. "/swap") == 0 then
+  vim.fn.mkdir(state_dir .. "/swap", "p")
+end
+if vim.fn.isdirectory(state_dir .. "/undo") == 0 then
+  vim.fn.mkdir(state_dir .. "/undo", "p")
+end
 
 -- Persistent undo
 o.undofile = true                    -- Enable persistent undo history saved to disk, letting you undo across sessions
