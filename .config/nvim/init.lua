@@ -1,5 +1,13 @@
 -- Minimal Neovim Lua entry (init.lua)
 -- Bootstraps lazy.nvim and loads core and plugins
+
+-- Polyfill vim.keycode for backward compatibility or missing implementations
+if not vim.keycode then
+  vim.keycode = function(str)
+    return vim.api.nvim_replace_termcodes(str, true, true, true)
+  end
+end
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
