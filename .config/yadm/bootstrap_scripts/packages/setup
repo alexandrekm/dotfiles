@@ -96,6 +96,7 @@ install_macos_packages() {
         "broot"
         "atuin"
         "font-fira-code-nerd-font"
+        "k9s"
     )
     
     for package in "${packages[@]}"; do
@@ -166,6 +167,9 @@ install_debian_packages() {
     # Install atuin for Linux
     install_atuin_linux
     
+    # Install k9s for Linux
+    install_k9s_linux
+    
     # Install FiraCode Nerd Font for Linux
     install_linux_nerd_font
 }
@@ -186,6 +190,60 @@ install_atuin_linux() {
     else
         print_status "red" "Failed to install atuin"
     fi
+}
+
+install_k9s_linux() {
+    if command_exists k9s; then
+        print_status "green" "k9s already installed"
+        return 0
+    fi
+    
+    print_status "blue" "Installing k9s..."
+    
+    local install_dir="$HOME/.local/bin"
+    mkdir -p "$install_dir"
+    
+    # Detect architecture
+    local arch=$(uname -m)
+    case $arch in
+        x86_64)
+            arch="amd64"
+            ;;
+        aarch64|arm64)
+            arch="arm64"
+            ;;
+        *)
+            print_status "red" "Unsupported architecture: $arch"
+            return 1
+            ;;
+    esac
+    
+    # Download and install k9s
+    local temp_dir=$(mktemp -d)
+    cd "$temp_dir"
+    
+    local k9s_version="v0.32.7"
+    local download_url="https://github.com/derailed/k9s/releases/download/${k9s_version}/k9s_Linux_${arch}.tar.gz"
+    
+    curl -fsSL "$download_url" -o k9s.tar.gz
+    
+    if [[ $? -eq 0 ]]; then
+        tar -xzf k9s.tar.gz k9s
+        mv k9s "$install_dir/"
+        chmod +x "$install_dir/k9s"
+        
+        if command_exists k9s; then
+            print_status "green" "k9s installed successfully"
+        else
+            print_status "green" "k9s installed to $install_dir/k9s (add $install_dir to PATH if needed)"
+        fi
+    else
+        print_status "red" "Failed to download k9s"
+    fi
+    
+    # Cleanup
+    cd - > /dev/null
+    rm -rf "$temp_dir"
 }
 
 install_linux_nerd_font() {
