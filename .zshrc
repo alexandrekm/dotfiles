@@ -41,6 +41,15 @@ prompt_context() {
 prompt_aws(){}
 
 # -----------------------------------------------------------------------------
+# History Configuration
+# -----------------------------------------------------------------------------
+# Isolate shell history between running sessions (no live sharing)
+unsetopt SHARE_HISTORY
+# Write commands to history file immediately (so new tabs see them)
+setopt INC_APPEND_HISTORY
+setopt APPEND_HISTORY
+
+# -----------------------------------------------------------------------------
 # General Aliases
 # -----------------------------------------------------------------------------
 alias watch='timeout 1h watch'
