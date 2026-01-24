@@ -137,3 +137,4 @@ if [[ -r "$HOME/.zshrc.system" ]]; then
 fi
 
 source ${HOME}/.config/broot/launcher/bash/br
+export PATH="/Users/alexandre/.antigravity/antigravity/bin:$PATH"
