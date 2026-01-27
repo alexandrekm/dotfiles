@@ -10,3 +10,12 @@ echo "🐧 Linux configuration loaded"
 alias cat='batcat --paging=never --style=plain'
 alias less='batcat'
 alias more='batcat'
+
+# -----------------------------------------------------------------------------
+# Homebrew Setup
+# -----------------------------------------------------------------------------
+if [[ -d "/home/linuxbrew/.linuxbrew" ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [[ -d "$HOME/.linuxbrew" ]]; then
+    eval "$($HOME/.linuxbrew/bin/brew shellenv)"
+fi

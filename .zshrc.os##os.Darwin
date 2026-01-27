@@ -4,7 +4,9 @@
 echo "🍎 macOS configuration loaded"
 
 # Clean PATH setup - let macOS handle system paths automatically
-export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$PATH"
+if [[ -f "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
 export PATH="$PATH:${HOME}/bin"
 
 # -----------------------------------------------------------------------------

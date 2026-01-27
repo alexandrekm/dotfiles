@@ -23,6 +23,7 @@ setup_package_manager() {
             ;;
         "linux")
             setup_linux_packages
+            setup_homebrew
             ;;
         *)
             print_status "red" "Unsupported operating system: $OS"
@@ -34,12 +35,25 @@ setup_package_manager() {
 setup_homebrew() {
     if ! command_exists brew; then
         print_status "blue" "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        # Use NONINTERACTIVE=1 to skip prompts if possible, or echo to skip the "press enter" prompt
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         
-        # Add Homebrew to PATH for Apple Silicon Macs
-        if [[ -f "/opt/homebrew/bin/brew" ]]; then
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-            eval "$(/opt/homebrew/bin/brew shellenv)"
+        # Add Homebrew to PATH based on OS and installation path
+        if [[ "$OS" == "macos" ]]; then
+            if [[ -f "/opt/homebrew/bin/brew" ]]; then
+                eval "$(/opt/homebrew/bin/brew shellenv)"
+            fi
+        elif [[ "$OS" == "linux" ]]; then
+            local brew_path=""
+            if [[ -d "/home/linuxbrew/.linuxbrew" ]]; then
+                brew_path="/home/linuxbrew/.linuxbrew"
+            elif [[ -d "$HOME/.linuxbrew" ]]; then
+                brew_path="$HOME/.linuxbrew"
+            fi
+
+            if [[ -n "$brew_path" ]]; then
+                eval "$($brew_path/bin/brew shellenv)"
+            fi
         fi
         print_status "green" "Homebrew installed successfully"
     else
@@ -56,6 +70,9 @@ setup_linux_packages() {
             if command_exists apt-get; then
                 print_status "blue" "Updating apt package lists..."
                 sudo apt-get update
+                
+                print_status "blue" "Installing Homebrew dependencies..."
+                sudo apt-get install -y build-essential procps curl file git
             fi
             ;;
         *)
