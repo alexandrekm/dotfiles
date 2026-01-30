@@ -300,10 +300,21 @@ install_linux_nerd_font() {
     rm -rf "$temp_dir"
 }
 
+
+
 # Main execution
 main() {
     setup_package_manager
     install_essential_packages
+    
+    # Run OpenCode setup
+    local script_dir="$(dirname "${BASH_SOURCE[0]}")"
+    if [[ -f "$script_dir/opencode_setup" ]]; then
+        "$script_dir/opencode_setup"
+    else
+        print_status "red" "OpenCode setup script not found at $script_dir/opencode_setup"
+    fi
+
     print_status "green" "Package setup completed!"
 }
 

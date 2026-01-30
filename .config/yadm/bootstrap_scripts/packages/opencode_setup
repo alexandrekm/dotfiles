@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# OpenCode setup script
+
+set -e
+
+# Metatdata for this component
+metadata() {
+    echo "🤖:OpenCode Setup:Install OpenCode and its plugins"
+}
+
+# Source utility functions
+# Adjust relative path if this script moves. Assuming it's in the same dir as 'setup'.
+source "$(dirname "${BASH_SOURCE[0]}")/../utils/functions.sh"
+
+OS=$(detect_os)
+
+setup_opencode() {
+    print_status "blue" "Installing OpenCode..."
+    brew install anomalyco/tap/opencode || true
+}
+
+# Main execution
+main() {
+    setup_opencode
+}
+
+# Run if executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

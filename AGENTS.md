@@ -27,6 +27,8 @@ This document provides AI agents with a structured overview of this dotfiles rep
 │   │       └── plugins/   # Plugin configuration
 │   │           ├── init.lua      # Plugin list (lazy.nvim)
 │   │           └── configs/      # Plugin-specific configs
+│   ├── opencode/          # OpenCode AI configuration
+│   │   └── opencode.jsonc # Provider, TUI, and tool settings
 │   └── yadm/              # Yadm configuration
 │       ├── bootstrap      # Main bootstrap symlink
 │       └── bootstrap_scripts/
@@ -94,7 +96,20 @@ This document provides AI agents with a structured overview of this dotfiles rep
 - Background: 90% opacity with blur
 - Window: 120x30 cells
 
-### 4. Bootstrap System
+- Window: 120x30 cells
+
+### 4. OpenCode AI Configuration
+
+**Location:** `~/.config/opencode/opencode.jsonc`
+
+**Features:**
+- Provider: OpenAI (gpt-4o)
+- Theme: Catppuccin Mocha
+- Tool permissions: `ask` for write/edit/bash, `allow` for read/webfetch
+- Custom modes: `engineer`, `researcher`
+- MCP integration: GitHub server support
+
+### 5. Bootstrap System
 
 **Location:** `~/.config/yadm/bootstrap_scripts/`
 
