@@ -1,23 +1,4 @@
-# -----------------------------------------------------------------------------
-# Oh My Zsh Configuration
-# -----------------------------------------------------------------------------
-# Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
 export TERM=xterm-256color
-
-# ZSH_THEME="bira"
-ZSH_THEME="intheloop"
-# ZSH_THEME="amuse"
-
-# Uncomment the following line to use case-sensitive completion.
-CASE_SENSITIVE="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-COMPLETION_WAITING_DOTS="true"
-
-# Which plugins would you like to load?
-plugins=(git aws docker zsh-autosuggestions zsh-completions you-should-use)
-bindkey '^X' create_completion
 
 # -----------------------------------------------------------------------------
 # VS Code Integration
@@ -27,7 +8,23 @@ if [[ "$GIT_PAGER" == "cat" ]]; then
     PROMPT='🤖 copilot %% '
     export AWS_PAGER=""
 else
-    source $ZSH/oh-my-zsh.sh
+    # -------------------------------------------------------------------------
+    # Antidote Plugin Manager
+    # -------------------------------------------------------------------------
+    ANTIDOTE_HOME="${ZDOTDIR:-$HOME}/.antidote"
+    ANTIDOTE_PLUGINS_FILE="${ZDOTDIR:-$HOME}/.zsh_plugins.txt"
+    ANTIDOTE_BUNDLE_FILE="${ZDOTDIR:-$HOME}/.zsh_plugins.zsh"
+
+    if [[ -r "$ANTIDOTE_HOME/antidote.zsh" ]]; then
+        source "$ANTIDOTE_HOME/antidote.zsh"
+
+        if [[ -r "$ANTIDOTE_PLUGINS_FILE" ]]; then
+            if [[ ! -r "$ANTIDOTE_BUNDLE_FILE" || "$ANTIDOTE_PLUGINS_FILE" -nt "$ANTIDOTE_BUNDLE_FILE" ]]; then
+                antidote bundle < "$ANTIDOTE_PLUGINS_FILE" >| "$ANTIDOTE_BUNDLE_FILE"
+            fi
+            source "$ANTIDOTE_BUNDLE_FILE"
+        fi
+    fi
 fi
 
 # -----------------------------------------------------------------------------
@@ -101,9 +98,6 @@ extract() {
     fi
 }
 
-# Load additional completions
-fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
-
 # Enable completion caching
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
@@ -113,6 +107,19 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:
 
 # Colored completion
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# you-should-use plugin keybinding
+if (( $+functions[create_completion] )); then
+    bindkey '^X' create_completion
+fi
+
+# Fish-like history search with arrow keys
+if (( $+functions[history-substring-search-up] )) && (( $+functions[history-substring-search-down] )); then
+    bindkey '^[[A' history-substring-search-up
+    bindkey '^[[B' history-substring-search-down
+    bindkey '^[OA' history-substring-search-up
+    bindkey '^[OB' history-substring-search-down
+fi
 
 # -----------------------------------------------------------------------------
 # External Tool Management (Managed Sections)
@@ -136,5 +143,7 @@ if [[ -r "$HOME/.zshrc.system" ]]; then
     source "$HOME/.zshrc.system"
 fi
 
-source ${HOME}/.config/broot/launcher/bash/br
+if [[ -r "${HOME}/.config/broot/launcher/bash/br" ]]; then
+    source "${HOME}/.config/broot/launcher/bash/br"
+fi
 export PATH="/Users/alexandre/.antigravity/antigravity/bin:$PATH"
