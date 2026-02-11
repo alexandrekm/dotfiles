@@ -1,5 +1,9 @@
 export TERM=xterm-256color
 
+if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
+    zmodload zsh/zprof
+fi
+
 # -----------------------------------------------------------------------------
 # VS Code Integration
 # -----------------------------------------------------------------------------
@@ -22,6 +26,11 @@ else
             if [[ ! -r "$ANTIDOTE_BUNDLE_FILE" || "$ANTIDOTE_PLUGINS_FILE" -nt "$ANTIDOTE_BUNDLE_FILE" ]]; then
                 antidote bundle < "$ANTIDOTE_PLUGINS_FILE" >| "$ANTIDOTE_BUNDLE_FILE"
             fi
+
+            if [[ "$ANTIDOTE_BUNDLE_FILE" -nt "$ANTIDOTE_BUNDLE_FILE.zwc" ]]; then
+                zcompile "$ANTIDOTE_BUNDLE_FILE" 2>/dev/null
+            fi
+
             source "$ANTIDOTE_BUNDLE_FILE"
         fi
     fi
@@ -127,7 +136,11 @@ fi
 
 # Atuin - Shell history sync and search
 if command -v atuin &> /dev/null; then
-    eval "$(atuin init zsh)"
+    if (( $+functions[zsh-defer] )); then
+        zsh-defer eval "$(atuin init zsh)"
+    else
+        eval "$(atuin init zsh)"
+    fi
 fi
 
 # -----------------------------------------------------------------------------
@@ -144,6 +157,14 @@ if [[ -r "$HOME/.zshrc.system" ]]; then
 fi
 
 if [[ -r "${HOME}/.config/broot/launcher/bash/br" ]]; then
-    source "${HOME}/.config/broot/launcher/bash/br"
+    if (( $+functions[zsh-defer] )); then
+        zsh-defer source "${HOME}/.config/broot/launcher/bash/br"
+    else
+        source "${HOME}/.config/broot/launcher/bash/br"
+    fi
 fi
 export PATH="/Users/alexandre/.antigravity/antigravity/bin:$PATH"
+
+if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
+    zprof
+fi
