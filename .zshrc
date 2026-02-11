@@ -37,16 +37,6 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# Prompt Customization
-# -----------------------------------------------------------------------------
-prompt_context() {
-  if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-    prompt_segment black default "%(!.%{%F{yellow}%}.)am"
-  fi
-}
-prompt_aws(){}
-
-# -----------------------------------------------------------------------------
 # History Configuration
 # -----------------------------------------------------------------------------
 # Isolate shell history between running sessions (no live sharing)
@@ -141,6 +131,11 @@ if command -v atuin &> /dev/null; then
     else
         eval "$(atuin init zsh)"
     fi
+fi
+
+# Starship prompt
+if [[ "$GIT_PAGER" != "cat" ]] && command -v starship &> /dev/null; then
+    eval "$(starship init zsh)"
 fi
 
 # -----------------------------------------------------------------------------
