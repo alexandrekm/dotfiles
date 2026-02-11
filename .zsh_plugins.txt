@@ -8,6 +8,7 @@ ohmyzsh/ohmyzsh path:plugins/docker
 mattmc3/ez-compinit
 romkatv/zsh-defer
 zsh-users/zsh-completions kind:fpath path:src
+Aloxaf/fzf-tab
 zsh-users/zsh-autosuggestions
 zsh-users/zsh-history-substring-search
 MichaelAquilina/zsh-you-should-use

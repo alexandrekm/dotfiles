@@ -107,6 +107,14 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:
 # Colored completion
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
+# Completion UX
+zstyle ':completion:*' menu select
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '[%d]'
+zstyle ':completion:*:warnings' format 'no matches for: %d'
+zstyle ':completion:*' squeeze-slashes true
+zstyle ':fzf-tab:complete:*' fzf-flags '--height=50% --layout=reverse --border=rounded'
+
 # you-should-use plugin keybinding
 if (( $+functions[create_completion] )); then
     bindkey '^X' create_completion
@@ -124,8 +132,35 @@ fi
 # External Tool Management (Managed Sections)
 # -----------------------------------------------------------------------------
 
+_setup_atuin_completion() {
+    if (( $+functions[_atuin] )); then
+        return
+    fi
+
+    local atuin_comp_file="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions/_atuin"
+    local atuin_bin
+    atuin_bin="$(command -v atuin 2>/dev/null)"
+
+    if [[ -z "$atuin_bin" ]]; then
+        return
+    fi
+
+    if [[ ! -s "$atuin_comp_file" || "$atuin_bin" -nt "$atuin_comp_file" ]]; then
+        mkdir -p "${atuin_comp_file:h}"
+        atuin gen-completions --shell zsh >| "$atuin_comp_file" 2>/dev/null || return
+    fi
+
+    if [[ ${fpath[(Ie)"${atuin_comp_file:h}"]} -eq 0 ]]; then
+        fpath=("${atuin_comp_file:h}" $fpath)
+    fi
+
+    autoload -Uz _atuin
+    compdef _atuin atuin
+}
+
 # Atuin - Shell history sync and search
 if command -v atuin &> /dev/null; then
+    _setup_atuin_completion
     if (( $+functions[zsh-defer] )); then
         zsh-defer eval "$(atuin init zsh)"
     else
