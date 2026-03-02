@@ -1,62 +1,160 @@
+# =============================================================================
+# Starship Prompt - Catppuccin Mocha Rainbow Powerline
+# =============================================================================
+# Powerlevel10k-style colored bars with  arrow separators
+# Requires: Nerd Font (FiraCode Nerd Font, etc.)
+#
+# Catppuccin Mocha palette reference:
+#   Blue=#89b4fa  Peach=#fab387  Sapphire=#74c7ec  Mauve=#cba6f7
+#   Yellow=#f9e2af  Green=#a6e3a1  Red=#f38ba8  Lavender=#b4befe
+#   Surface0=#313244  Surface1=#45475a  Mantle=#181825
+
 add_newline = false
 
-format = "$username[@](fg:244)$hostname [in](fg:244) $directory$git_branch$git_status$line_break$character"
-right_format = "$cmd_duration"
+# Left prompt: powerline segments with arrow transitions
+# Git and K8s segments are self-contained (own arrows) so they
+# disappear cleanly when not in a git repo or no k8s context
+format = """[](fg:#313244)\
+$username\
+[](fg:#313244 bg:#45475a)\
+$hostname\
+[](fg:#45475a bg:#89b4fa)\
+$directory\
+[](fg:#89b4fa)\
+$git_branch\
+$git_status\
+$kubernetes\
+$line_break\
+$character"""
+
+# Right prompt: command duration with powerline
+right_format = """$cmd_duration"""
+
+continuation_prompt = "[..](fg:#7f849c) "
+
+# -----------------------------------------------------------------------------
+# Identity
+# -----------------------------------------------------------------------------
 
 [username]
 show_always = true
-style_user = "bold fg:111"
-style_root = "bold fg:203"
-format = "[$user ]($style)"
+style_user = "bold fg:#89b4fa bg:#313244"
+style_root = "bold fg:#f38ba8 bg:#313244"
+format = "[ $user ]($style)"
 
 [hostname]
 ssh_only = false
-style = "bold fg:214"
-format = "[$hostname]($style)"
+style = "bold fg:#fab387 bg:#45475a"
+format = "[ $hostname ]($style)"
+aliases = { "MT-D4YCTXFYK9-Alexandre-Mendonca" = "motive" }
+
+# -----------------------------------------------------------------------------
+# Directory
+# -----------------------------------------------------------------------------
 
 [directory]
 truncation_length = 3
 truncate_to_repo = true
 truncation_symbol = ".../"
-read_only = " ro"
-style = "bold fg:39"
-format = "[$path]($style)[$read_only](bold fg:203) "
+read_only = " "
+style = "bold fg:#181825 bg:#89b4fa"
+read_only_style = "fg:#f38ba8 bg:#89b4fa"
+format = "[  $path]($style)[$read_only]($read_only_style)[ ]($style)"
+
+# -----------------------------------------------------------------------------
+# Git
+# -----------------------------------------------------------------------------
 
 [git_branch]
-style = "bold fg:141"
-format = " [on](fg:244) [$branch]($style)"
+style = "bold fg:#181825 bg:#cba6f7"
+format = "[](fg:#cba6f7)[  $branch]($style)"
 
 [git_status]
-style = "bold fg:178"
-format = "[($all_status$ahead_behind)]($style)"
+style = "bold fg:#181825 bg:#cba6f7"
+format = "[ $all_status$ahead_behind ]($style)[](fg:#cba6f7)"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇡${ahead_count}⇣${behind_count}"
+conflicted = "=${count}"
+untracked = "?${count}"
+stashed = "\\$${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
 
+# -----------------------------------------------------------------------------
+# Cloud Context
+# -----------------------------------------------------------------------------
+
+[kubernetes]
+disabled = false
+style = "bold fg:#181825 bg:#b4befe"
+format = """[](fg:#b4befe)\
+[☸ $context(\\($namespace\\)) ](bold fg:#181825 bg:#b4befe)\
+[](fg:#b4befe)"""
+detect_folders = []
+detect_files = []
+
+# -----------------------------------------------------------------------------
+# Right Prompt
+# -----------------------------------------------------------------------------
 
 [cmd_duration]
 min_time = 300
-style = "bold fg:70"
-format = "[$duration]($style) "
+style = "bold fg:#181825 bg:#a6e3a1"
+format = """[](fg:#a6e3a1)\
+[  $duration ](bold fg:#181825 bg:#a6e3a1)\
+[](fg:#a6e3a1)"""
+
+# -----------------------------------------------------------------------------
+# Input Line
+# -----------------------------------------------------------------------------
+
+[character]
+success_symbol = "[>](bold fg:#a6e3a1)"
+error_symbol = "[>](bold fg:#f38ba8)"
+vimcmd_symbol = "[<](bold fg:#89b4fa)"
+vimcmd_replace_one_symbol = "[<](bold fg:#fab387)"
+vimcmd_replace_symbol = "[<](bold fg:#fab387)"
+vimcmd_visual_symbol = "[<](bold fg:#f9e2af)"
+
+# -----------------------------------------------------------------------------
+# Status & Jobs
+# -----------------------------------------------------------------------------
 
 [status]
 disabled = false
-style = "bold fg:203"
+style = "bold fg:#f38ba8"
 format = "[$symbol$status]($style) "
-symbol = "x"
+symbol = "✘ "
 
 [jobs]
-symbol = "jobs:"
-style = "bold fg:110"
+symbol = " "
+style = "bold fg:#74c7ec"
 format = "[$symbol$number]($style) "
 
-[time]
-disabled = false
-time_format = "%H:%M"
-style = "bold fg:244"
-format = "[$time]($style)"
+# -----------------------------------------------------------------------------
+# Disabled Modules
+# -----------------------------------------------------------------------------
 
-[character]
-success_symbol = "[>](bold fg:76)"
-error_symbol = "[>](bold fg:203)"
-vimcmd_symbol = "[<](bold fg:39)"
-vimcmd_replace_one_symbol = "[<](bold fg:214)"
-vimcmd_replace_symbol = "[<](bold fg:214)"
-vimcmd_visual_symbol = "[<](bold fg:178)"
+[aws]
+disabled = true
+
+[nodejs]
+disabled = true
+
+[python]
+disabled = true
+
+[golang]
+disabled = true
+
+[rust]
+disabled = true
+
+[java]
+disabled = true
+
+[docker_context]
+disabled = true

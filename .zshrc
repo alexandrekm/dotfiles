@@ -181,6 +181,18 @@ fi
 # Starship prompt
 if [[ "$GIT_PAGER" != "cat" ]] && command -v starship &> /dev/null; then
     eval "$(starship init zsh)"
+
+    # Transient prompt — collapse previous prompts to a minimal character
+    # after each command, giving a cleaner scrollback (like Powerlevel10k)
+    _starship_accept_line() {
+        local _starship_old_prompt="$PROMPT"
+        PROMPT="$(starship module character) "
+        zle reset-prompt
+        PROMPT="$_starship_old_prompt"
+        unset _starship_old_prompt
+        zle .accept-line
+    }
+    zle -N accept-line _starship_accept_line
 fi
 
 # -----------------------------------------------------------------------------
