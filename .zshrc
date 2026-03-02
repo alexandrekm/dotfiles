@@ -181,11 +181,6 @@ if [[ -r "$HOME/.zshrc.os" ]]; then
     source "$HOME/.zshrc.os"
 fi
 
-# Load system-specific configuration (selected by local.class)
-if [[ -r "$HOME/.zshrc.system" ]]; then
-    source "$HOME/.zshrc.system"
-fi
-
 if [[ -r "${HOME}/.config/broot/launcher/bash/br" ]]; then
     if (( $+functions[zsh-defer] )); then
         zsh-defer source "${HOME}/.config/broot/launcher/bash/br"
@@ -193,7 +188,14 @@ if [[ -r "${HOME}/.config/broot/launcher/bash/br" ]]; then
         source "${HOME}/.config/broot/launcher/bash/br"
     fi
 fi
-export PATH="/Users/alexandre/.antigravity/antigravity/bin:$PATH"
+
+# -----------------------------------------------------------------------------
+# Local Environment Overrides
+# -----------------------------------------------------------------------------
+# Load machine-specific configuration (not tracked by yadm)
+if [[ -r "$HOME/.env.zshrc" ]]; then
+    source "$HOME/.env.zshrc"
+fi
 
 if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
     zprof
