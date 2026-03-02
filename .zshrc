@@ -5,6 +5,14 @@ if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
 fi
 
 # -----------------------------------------------------------------------------
+# Yadm Drop-in: OS-specific Configuration
+# -----------------------------------------------------------------------------
+# Load early so PATH (e.g. Homebrew) is available for plugins and aliases
+if [[ -r "$HOME/.zshrc.os" ]]; then
+    source "$HOME/.zshrc.os"
+fi
+
+# -----------------------------------------------------------------------------
 # VS Code Integration
 # -----------------------------------------------------------------------------
 # Check if running inside VS Code's integrated terminal
@@ -155,7 +163,9 @@ _setup_atuin_completion() {
     fi
 
     autoload -Uz _atuin
-    compdef _atuin atuin
+    if (( $+functions[compdef] )); then
+        compdef _atuin atuin
+    fi
 }
 
 # Atuin - Shell history sync and search
@@ -174,13 +184,8 @@ if [[ "$GIT_PAGER" != "cat" ]] && command -v starship &> /dev/null; then
 fi
 
 # -----------------------------------------------------------------------------
-# Yadm Drop-in System
+# Broot
 # -----------------------------------------------------------------------------
-# Load OS-specific configuration (auto-selected by yadm)
-if [[ -r "$HOME/.zshrc.os" ]]; then
-    source "$HOME/.zshrc.os"
-fi
-
 if [[ -r "${HOME}/.config/broot/launcher/bash/br" ]]; then
     if (( $+functions[zsh-defer] )); then
         zsh-defer source "${HOME}/.config/broot/launcher/bash/br"
