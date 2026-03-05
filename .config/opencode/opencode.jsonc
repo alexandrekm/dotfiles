@@ -1,44 +1,25 @@
 {
     "$schema": "https://opencode.ai/config.json",
-    // "$schema": "https://opencode.ai/config.json",
-    // Terminal UI options
-    "tui": {
-        "theme": "catppuccin-mocha",
-        "compact": false,
-        "scroll_speed": 3,
-        "scroll_acceleration": {
+    "small_model": "github-copilot/gpt-4o-mini",
+    "plugin": [
+        "cc-safety-net",
+        "@ramtinj95/opencode-tokenscope@latest",
+        "@mohak34/opencode-notifier@latest",
+        "@plannotator/opencode@latest"
+    ],
+    "experimental": {
+        "disable_paste_summary": true
+    },
+    "mcp": {
+        "context7": {
+            "type": "remote",
+            "url": "https://mcp.context7.com/mcp",
             "enabled": true
         },
-        "enterToSubmit": true
-    },
-    // Server defaults
-    "server": {
-        "port": 4569
-    },
-    "plugin": [
-        // "cc-safety-net",
-        "@ramtinj95/opencode-tokenscope@latest"
-    ]
-    // MCP servers
-    // "mcp": {
-    //     "github": {
-    //         "type": "local",
-    //         "command": [
-    //             "npx",
-    //             "-y",
-    //             "@modelcontextprotocol/server-github"
-    //         ],
-    //         "env": {
-    //             "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-    //         }
-    //     },
-    //     "git": {
-    //         "type": "local",
-    //         "command": [
-    //             "npx",
-    //             "-y",
-    //             "@modelcontextprotocol/server-git"
-    //         ]
-    //     }
-    // }
+        "playwright": {
+            "type": "local",
+            "command": ["npx", "-y", "@playwright/mcp@latest"],
+            "enabled": true
+        }
+    }
 }
