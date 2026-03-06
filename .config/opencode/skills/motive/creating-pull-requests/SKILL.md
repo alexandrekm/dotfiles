@@ -143,10 +143,10 @@ git log <base>..HEAD --format="%s%n%b"
 **Generate PR title:**
 
 ```
-type(JIRA_KEY): Short Description
+type(JIRA_KEY): lowercase description
 ```
 
-The type and JIRA_KEY come from Step 1 and Step 3. The description should summarize the change concisely.
+The type and JIRA_KEY come from Step 1 and Step 3. The description should summarize the change concisely. **The description must be lowercase** — the same `subject-case` commitlint rule applies to PR titles.
 
 **Generate PR body using this template:**
 
@@ -174,7 +174,7 @@ Update the jira description with the things we did in the PR, so that the ticket
 ### Step 7: Create PR
 
 ```bash
-gh pr create --title "type(JIRA_KEY): Description" --body "$(cat <<'EOF'
+gh pr create --title "type(JIRA_KEY): lowercase description" --body "$(cat <<'EOF'
 ## Why is this change needed?
 ...
 
@@ -216,7 +216,7 @@ Output the PR URL to the user.
 | Item | Pattern | Example |
 |------|---------|---------|
 | Commit message | `type(JIRA-123): description` | `feat(OP-107): add xgboost model for sbv cbb` |
-| PR title | `type(JIRA-123): Description` | `feat(OP-107): XGBoost Model for SBV CBB` |
+| PR title | `type(JIRA-123): description` | `feat(OP-107): add xgboost model for sbv cbb` |
 | Branch name | `type/JIRA-123-description` | `feat/OP-107-xgboost-sbv-cbb` |
 
 ## PR Body Template
@@ -246,7 +246,7 @@ Jira: https://k2labs.atlassian.net/browse/<JIRA_KEY>
 | Using `gh pr create --fill` | Always use the company template, never `--fill` |
 | Creating PR from main/master | Always create a feature branch first (Step 2) |
 | Forgetting Jira link in PR body | The template includes it — always fill in the `JIRA_KEY` |
-| Commit description in uppercase | Commit descriptions should be lowercase; PR titles can use title case |
+| Commit description in uppercase | Commit and PR title descriptions must be lowercase — commitlint enforces `subject-case` |
 | Branch name missing Jira key | Branch must include `JIRA_KEY` between type and description |
 
 ## Red Flags

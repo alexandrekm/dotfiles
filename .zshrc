@@ -19,6 +19,19 @@ fi
 if [[ "$GIT_PAGER" == "cat" ]]; then
     PROMPT='🤖 copilot %% '
     export AWS_PAGER=""
+
+    # Auto-attach to the tmux session matching this workspace, if one exists.
+    # VS Code starts the terminal in the workspace root — match it to ~/code/<name>.
+    # Only attach if: not already inside tmux, tmux is running, and PWD is a ~/code/* project.
+    if [[ -z "$TMUX" ]] && command -v tmux &>/dev/null; then
+        local _vscode_project="${PWD#$HOME/code/}"
+        if [[ "$_vscode_project" != "$PWD" && "$_vscode_project" != */* ]]; then
+            if tmux has-session -t "$_vscode_project" 2>/dev/null; then
+                echo "tmux session '$_vscode_project' is running. Attach with: ta $_vscode_project"
+            fi
+        fi
+        unset _vscode_project
+    fi
 else
     # -------------------------------------------------------------------------
     # Antidote Plugin Manager
@@ -205,6 +218,97 @@ if [[ -r "${HOME}/.config/broot/launcher/bash/br" ]]; then
         source "${HOME}/.config/broot/launcher/bash/br"
     fi
 fi
+
+# -----------------------------------------------------------------------------
+# tmux Workflow
+# -----------------------------------------------------------------------------
+
+# workon <project> — create or attach to a project tmux session
+# Each session gets a 2-pane layout: opencode (left) + shell (right)
+workon() {
+    local project="${1}"
+
+    # workon list — show ~/code dirs and mark active tmux sessions
+    if [[ "$project" == "list" ]]; then
+        local active
+        active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+        for dir in "${HOME}"/code/*(N/); do
+            local name="${dir:t}"
+            if echo "$active" | grep -qx "$name"; then
+                echo "  $name  [active]"
+            else
+                echo "  $name"
+            fi
+        done
+        return 0
+    fi
+
+    if [[ -z "$project" ]]; then
+        echo "Usage: workon <project-name|list>" >&2
+        return 1
+    fi
+
+    local project_dir="${HOME}/code/${project}"
+
+    if [[ ! -d "$project_dir" ]]; then
+        echo "workon: directory not found: ${project_dir}" >&2
+        return 1
+    fi
+
+    # Session already exists — attach or switch to it
+    if tmux has-session -t "$project" 2>/dev/null; then
+        if [[ -n "$TMUX" ]]; then
+            tmux switch-client -t "$project"
+        else
+            tmux attach-session -t "$project"
+        fi
+        return 0
+    fi
+
+    # Create a new session (detached so we can configure it first)
+    tmux new-session -d -s "$project" -n "opencode" -c "$project_dir"
+
+    # Start opencode in the first (left) pane
+    tmux send-keys -t "${project}:opencode.1" "opencode" Enter
+
+    # Split right at 35% width, starting a plain shell
+    tmux split-window -t "${project}:opencode" -h -p 33 -c "$project_dir"
+
+    # Focus the left pane (opencode)
+    tmux select-pane -t "${project}:opencode.1"
+
+    # Attach or switch to the new session
+    if [[ -n "$TMUX" ]]; then
+        tmux switch-client -t "$project"
+    else
+        tmux attach-session -t "$project"
+    fi
+}
+
+# Tab completion for workon — offers 'list' and directories in ~/code/
+_workon() {
+    local -a projects
+    projects=(list "${HOME}"/code/*(N/:t))
+    compadd "${projects[@]}"
+}
+if (( $+functions[compdef] )); then
+    compdef _workon workon
+else
+    autoload -Uz add-zsh-hook
+    add-zsh-hook -Uz precmd _workon_register_compdef
+    _workon_register_compdef() {
+        if (( $+functions[compdef] )); then
+            compdef _workon workon
+            add-zsh-hook -d precmd _workon_register_compdef
+        fi
+    }
+fi
+
+# tmux session aliases
+alias tls='tmux list-sessions'       # List all project sessions
+alias tks='tmux kill-session -t'     # Kill a specific session: tks <name>
+alias tka='tmux kill-server'         # Kill all sessions (nuclear)
+alias ta='tmux attach -t'            # Attach to a session: ta <name>
 
 # -----------------------------------------------------------------------------
 # Local Environment Overrides
