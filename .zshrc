@@ -60,11 +60,9 @@ fi
 # -----------------------------------------------------------------------------
 # History Configuration
 # -----------------------------------------------------------------------------
-# Isolate shell history between running sessions (no live sharing)
+# Isolate shell history per session — no sharing between tabs
 unsetopt SHARE_HISTORY
-# Write commands to history file immediately (so new tabs see them)
-setopt INC_APPEND_HISTORY
-setopt APPEND_HISTORY
+unsetopt INC_APPEND_HISTORY
 
 # -----------------------------------------------------------------------------
 # General Aliases
