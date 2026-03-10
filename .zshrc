@@ -72,6 +72,8 @@ alias k="kubectl"
 alias vim="nvim"
 alias myip='curl ipinfo.io/ip'
 alias reload='source ~/.zshrc'
+alias kx='kubectx'
+alias kns='kubens'
 
 # Use modern alternatives for better output
 alias ls='lsd'
@@ -89,9 +91,13 @@ alias ya='yadm add'
 alias ycam='yadm commit -m'
 alias ypsup='yadm push'
 
-# Quick file search
-ff() {
-    find . -type f -name "*$1*"
+# Quick file search (using ripgrep if available, fallback to find)
+ ff() {
+    if command -v rg &>/dev/null; then
+        rg --files --glob "*${1}*" 2>/dev/null
+    else
+        find . -type f -name "*$1*"
+    fi
 }
 
 # Extract various archive formats
@@ -114,6 +120,30 @@ extract() {
     else
         echo "'$1' is not a valid file"
     fi
+}
+
+# -----------------------------------------------------------------------------
+# zoxide — smarter cd
+# -----------------------------------------------------------------------------
+if command -v zoxide &>/dev/null; then
+    _zoxide_init_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zoxide_init.zsh"
+    _zoxide_bin="$(command -v zoxide)"
+    if [[ ! -f "$_zoxide_init_cache" || "$_zoxide_bin" -nt "$_zoxide_init_cache" ]]; then
+        mkdir -p "${_zoxide_init_cache:h}"
+        zoxide init zsh >| "$_zoxide_init_cache"
+    fi
+    source "$_zoxide_init_cache"
+    unset _zoxide_init_cache _zoxide_bin
+fi
+
+y() {
+    local tmp cwd
+    tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(cat -- "$tmp")" && [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+        builtin cd -- "$cwd"
+    fi
+    rm -f -- "$tmp"
 }
 
 # Enable completion caching

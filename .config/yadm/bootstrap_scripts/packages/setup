@@ -114,6 +114,10 @@ install_macos_packages() {
         "atuin"
         "font-fira-code-nerd-font"
         "k9s"
+        "fzf"
+        "zoxide"
+        "ripgrep"
+        "yazi"
     )
     
     for package in "${packages[@]}"; do
