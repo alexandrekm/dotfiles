@@ -126,6 +126,9 @@ extract() {
 # zoxide — smarter cd
 # -----------------------------------------------------------------------------
 if command -v zoxide &>/dev/null; then
+    # Match the fzf style used elsewhere in this config
+    export _ZO_FZF_OPTS="--height=50% --layout=reverse --border=rounded"
+
     _zoxide_init_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zoxide_init.zsh"
     _zoxide_bin="$(command -v zoxide)"
     if [[ ! -f "$_zoxide_init_cache" || "$_zoxide_bin" -nt "$_zoxide_init_cache" ]]; then

@@ -168,6 +168,7 @@ install_debian_packages() {
         "dust"
         "duf"
         "broot"
+        "zoxide"
     )
     
     for package in "${packages[@]}"; do
