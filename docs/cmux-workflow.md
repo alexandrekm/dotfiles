@@ -37,32 +37,6 @@ Tab completion is available — press `<Tab>` after `workon` to see project name
 
 ---
 
-## Session Management
-
-| Command | cmux | tmux |
-|---------|------|------|
-| `tls` | `cmux list-workspaces` | `tmux list-sessions` |
-| `ta <id>` | switch to workspace by ref | attach to session |
-| `tks <id>` | close workspace by ref | kill session |
-| `tka` | close all workspaces | kill server |
-
----
-
-## Workspace Layout (cmux)
-
-Each `workon` workspace has one tab (pane) with two surfaces:
-
-```
-┌─────────────────────┬──────────────┐
-│                     │              │
-│   opencode          │   yazi (y)   │
-│   (left, focused)   │   (right)    │
-│                     │              │
-└─────────────────────┴──────────────┘
-```
-
----
-
 ## Other Shortcuts
 
 | Command | Action |
@@ -74,15 +48,4 @@ Each `workon` workspace has one tab (pane) with two surfaces:
 
 ## Fallback: tmux
 
-All functions (`workon`, `tls`, `ta`, `tks`, `tka`) fall back to standard tmux behavior when not inside a cmux surface. tmux config (`~/.tmux.conf`) is untouched.
-
-tmux workspace layout:
-
-```
-┌─────────────────────┬──────────┐
-│                     │          │
-│   opencode          │  shell   │
-│   (left, ~67%)      │  (33%)   │
-│                     │          │
-└─────────────────────┴──────────┘
-```
+`workon` falls back to standard tmux behavior when not inside a cmux surface — creates a session with opencode (left, ~67%) + idle shell (right, 33%). tmux config (`~/.tmux.conf`) is untouched.
