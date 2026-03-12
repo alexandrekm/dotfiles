@@ -64,6 +64,60 @@ Projects must exist under `~/code/<project>`. Tab completion available.
 |---------|--------|
 | `code.` | Open VS Code in the current directory |
 | `y` | Launch yazi file manager |
+| `w` | Alias for `workon` |
+
+---
+
+## File Manager: yazi
+
+### Navigation
+
+| Key | Action |
+|-----|--------|
+| `h` / `l` | Go up / into directory |
+| `j` / `k` | Move down / up |
+| `H` / `L` | Go back / forward in history |
+| `~` | Go to home directory |
+| `gg` | Jump to top of list |
+| `G` | Jump to bottom of list |
+
+### Search & Jump
+
+| Key | Action |
+|-----|--------|
+| `/` | Filter files in current dir (fuzzy, live) |
+| `f` | Jump to file by first characters (incremental) |
+| `s` | Search filenames recursively (uses **fd**) |
+| `S` | Search file contents recursively (uses **ripgrep**) |
+| `z` | Jump to directory via zoxide |
+| `Z` | Jump to directory via zoxide + fzf (interactive) |
+
+`s` and `S` require `fd` and `ripgrep` respectively (`brew install fd ripgrep`).
+
+### File Operations
+
+| Key | Action |
+|-----|--------|
+| `Space` | Toggle select file |
+| `y` | Yank (copy) |
+| `x` | Cut |
+| `p` | Paste |
+| `d` | Move to trash |
+| `D` | Delete permanently |
+| `r` | Rename |
+| `a` | Create file or directory (end with `/` for dir) |
+| `.` | Toggle hidden files |
+
+### Opening
+
+| Key | Action |
+|-----|--------|
+| `Enter` / `l` | Open file / enter directory |
+| `o` | Open with default app |
+| `O` | Open with app picker |
+| `!` | Open shell in current directory |
+
+---
 
 ### Fallback: tmux
 
