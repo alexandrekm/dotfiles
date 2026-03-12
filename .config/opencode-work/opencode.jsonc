@@ -49,7 +49,8 @@
         "cc-safety-net",
         "@ramtinj95/opencode-tokenscope@latest",
         "@mohak34/opencode-notifier@latest",
-        "@plannotator/opencode@latest"
+        "@plannotator/opencode@latest",
+        "opencode-cmux"
     ],
     "experimental": {
         "disable_paste_summary": true

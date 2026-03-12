@@ -20,18 +20,25 @@ if [[ "$GIT_PAGER" == "cat" ]]; then
     PROMPT='🤖 copilot %% '
     export AWS_PAGER=""
 
-    # Auto-attach to the tmux session matching this workspace, if one exists.
+    # Surface active workon sessions for this workspace in VS Code's integrated terminal.
     # VS Code starts the terminal in the workspace root — match it to ~/code/<name>.
-    # Only attach if: not already inside tmux, tmux is running, and PWD is a ~/code/* project.
-    if [[ -z "$TMUX" ]] && command -v tmux &>/dev/null; then
-        local _vscode_project="${PWD#$HOME/code/}"
-        if [[ "$_vscode_project" != "$PWD" && "$_vscode_project" != */* ]]; then
+    local _vscode_project="${PWD#$HOME/code/}"
+    if [[ "$_vscode_project" != "$PWD" && "$_vscode_project" != */* ]]; then
+        if [[ -n "$CMUX_WORKSPACE_ID" ]] && command -v cmux &>/dev/null; then
+            # Inside a cmux workspace — hint to switch there
+            local _cmux_ws
+            _cmux_ws=$(cmux list-workspaces --json 2>/dev/null | command grep -F "${HOME}/code/${_vscode_project}" | command grep -o '"id":"[^"]*"' | head -1 | command sed 's/"id":"//;s/"$//')
+            if [[ -n "$_cmux_ws" ]]; then
+                echo "cmux workspace '${_vscode_project}' is running. Switch with: ta ${_cmux_ws}"
+            fi
+        elif [[ -z "$TMUX" ]] && command -v tmux &>/dev/null; then
+            # tmux path (original logic)
             if tmux has-session -t "$_vscode_project" 2>/dev/null; then
                 echo "tmux session '$_vscode_project' is running. Attach with: ta $_vscode_project"
             fi
         fi
-        unset _vscode_project
     fi
+    unset _vscode_project
 else
     # -------------------------------------------------------------------------
     # Antidote Plugin Manager
@@ -254,23 +261,44 @@ fi
 # tmux Workflow
 # -----------------------------------------------------------------------------
 
-# workon <project> — create or attach to a project tmux session
+# workon <project> — create or attach to a project session (cmux or tmux)
 # Each session gets a 2-pane layout: opencode (left) + shell (right)
+
+_in_cmux() {
+    [[ -n "$CMUX_WORKSPACE_ID" ]]
+}
+
 workon() {
     local project="${1}"
 
-    # workon list — show ~/code dirs and mark active tmux sessions
+    # workon list — show ~/code dirs and mark active sessions
     if [[ "$project" == "list" ]]; then
-        local active
-        active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
-        for dir in "${HOME}"/code/*(N/); do
-            local name="${dir:t}"
-            if echo "$active" | grep -qx "$name"; then
-                echo "  $name  [active]"
-            else
-                echo "  $name"
-            fi
-        done
+        if _in_cmux; then
+            # cmux mode: list workspaces and cross-reference with ~/code dirs
+            local ws_json
+            ws_json=$(cmux list-workspaces --json 2>/dev/null)
+            for dir in "${HOME}"/code/*(N/); do
+                local name="${dir:t}"
+                # Check if any workspace has a status entry with this project name
+                if echo "$ws_json" | command grep -q "\"$name\"" 2>/dev/null; then
+                    echo "  $name  [active]"
+                else
+                    echo "  $name"
+                fi
+            done
+        else
+            # tmux mode (unchanged)
+            local active
+            active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+            for dir in "${HOME}"/code/*(N/); do
+                local name="${dir:t}"
+                if echo "$active" | command grep -qx "$name"; then
+                    echo "  $name  [active]"
+                else
+                    echo "  $name"
+                fi
+            done
+        fi
         return 0
     fi
 
@@ -286,33 +314,82 @@ workon() {
         return 1
     fi
 
-    # Session already exists — attach or switch to it
-    if tmux has-session -t "$project" 2>/dev/null; then
+    if _in_cmux; then
+        # cmux path: create or switch to workspace for this project
+        local ws_json
+        ws_json=$(cmux list-workspaces --json 2>/dev/null)
+
+        # Find workspace whose cwd contains the project directory (safe grep, no regex injection)
+        local match_line
+        match_line=$(echo "$ws_json" | command grep -F "${project_dir}" 2>/dev/null | head -1)
+        local existing_id=""
+        if [[ -n "$match_line" ]]; then
+            existing_id=$(echo "$match_line" | command grep -o '"id":"[^"]*"' | head -1 | command sed 's/"id":"//;s/"$//')
+        fi
+
+        if [[ -n "$existing_id" ]]; then
+            # Workspace already exists — switch to it
+            cmux select-workspace --workspace "$existing_id" 2>/dev/null
+        else
+            # Create new workspace
+            cmux new-workspace 2>/dev/null
+            sleep 0.3
+
+            # Label the workspace with the project name
+            cmux set-status project "$project" 2>/dev/null
+
+            # Navigate to project dir and start opencode in the first surface
+            cmux send "cd '${project_dir}' && opencode" 2>/dev/null
+            cmux send-key enter 2>/dev/null
+            sleep 0.1
+
+            # Split right for a plain shell
+            cmux new-split right 2>/dev/null
+            sleep 0.1
+
+            # Navigate to project dir in the new shell pane
+            cmux send "cd '${project_dir}'" 2>/dev/null
+            cmux send-key enter 2>/dev/null
+
+            # Focus the left surface (opencode)
+            local surfaces_json
+            surfaces_json=$(cmux list-surfaces --json 2>/dev/null)
+            local first_surface
+            first_surface=$(echo "$surfaces_json" | command grep -o '"id":"[^"]*"' | head -1 | command sed 's/"id":"//;s/"$//')
+            if [[ -n "$first_surface" ]]; then
+                cmux focus-surface --surface "$first_surface" 2>/dev/null
+            fi
+        fi
+    else
+        # tmux path (original implementation, unchanged)
+        # Session already exists — attach or switch to it
+        if tmux has-session -t "$project" 2>/dev/null; then
+            if [[ -n "$TMUX" ]]; then
+                tmux switch-client -t "$project"
+            else
+                tmux attach-session -t "$project"
+            fi
+            return 0
+        fi
+
+        # Create a new session (detached so we can configure it first)
+        tmux new-session -d -s "$project" -n "opencode" -c "$project_dir"
+
+        # Start opencode in the first (left) pane
+        tmux send-keys -t "${project}:opencode.1" "opencode" Enter
+
+        # Split right at 35% width, starting a plain shell
+        tmux split-window -t "${project}:opencode" -h -p 33 -c "$project_dir"
+
+        # Focus the left pane (opencode)
+        tmux select-pane -t "${project}:opencode.1"
+
+        # Attach or switch to the new session
         if [[ -n "$TMUX" ]]; then
             tmux switch-client -t "$project"
         else
             tmux attach-session -t "$project"
         fi
-        return 0
-    fi
-
-    # Create a new session (detached so we can configure it first)
-    tmux new-session -d -s "$project" -n "opencode" -c "$project_dir"
-
-    # Start opencode in the first (left) pane
-    tmux send-keys -t "${project}:opencode.1" "opencode" Enter
-
-    # Split right at 35% width, starting a plain shell
-    tmux split-window -t "${project}:opencode" -h -p 33 -c "$project_dir"
-
-    # Focus the left pane (opencode)
-    tmux select-pane -t "${project}:opencode.1"
-
-    # Attach or switch to the new session
-    if [[ -n "$TMUX" ]]; then
-        tmux switch-client -t "$project"
-    else
-        tmux attach-session -t "$project"
     fi
 }
 
@@ -335,11 +412,45 @@ else
     }
 fi
 
-# tmux session aliases
-alias tls='tmux list-sessions'       # List all project sessions
-alias tks='tmux kill-session -t'     # Kill a specific session: tks <name>
-alias tka='tmux kill-server'         # Kill all sessions (nuclear)
-alias ta='tmux attach -t'            # Attach to a session: ta <name>
+# Session management — dual-mode (cmux or tmux)
+tls() {
+    if _in_cmux; then
+        cmux list-workspaces
+    else
+        tmux list-sessions
+    fi
+}
+
+ta() {
+    if _in_cmux; then
+        cmux select-workspace --workspace "${1}" 2>/dev/null
+    else
+        tmux attach -t "${1}"
+    fi
+}
+
+tks() {
+    if _in_cmux; then
+        cmux close-workspace --workspace "${1}" 2>/dev/null
+    else
+        tmux kill-session -t "${1}"
+    fi
+}
+
+tka() {
+    if _in_cmux; then
+        local ws_ids
+        ws_ids=(${(f)"$(cmux list-workspaces --json 2>/dev/null | command grep -o '"id":"[^"]*"' | command sed 's/"id":"//;s/"$//')"})
+        for id in "${ws_ids[@]}"; do
+            cmux close-workspace --workspace "$id" 2>/dev/null
+        done
+    else
+        tmux kill-server
+    fi
+}
+
+# Open VS Code in current directory (replaces tmux bind-key o)
+alias code.='open -a "Visual Studio Code" .'
 
 # -----------------------------------------------------------------------------
 # Local Environment Overrides
