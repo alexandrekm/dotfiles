@@ -315,50 +315,47 @@ workon() {
     fi
 
     if _in_cmux; then
-        # cmux path: create or switch to workspace for this project
-        local ws_json
-        ws_json=$(cmux list-workspaces --json 2>/dev/null)
+        # cmux path: find existing workspace for this project (by status key) or configure current one
 
-        # Find workspace whose cwd contains the project directory (safe grep, no regex injection)
-        local match_line
-        match_line=$(echo "$ws_json" | command grep -F "${project_dir}" 2>/dev/null | head -1)
-        local existing_id=""
-        if [[ -n "$match_line" ]]; then
-            existing_id=$(echo "$match_line" | command grep -o '"id":"[^"]*"' | head -1 | command sed 's/"id":"//;s/"$//')
-        fi
+        # Iterate workspaces and look for one tagged with project=$project via set-status
+        local existing_ref=""
+        local ws_refs
+        ws_refs=($(cmux --json list-workspaces 2>/dev/null | command grep -o '"ref" : "[^"]*"' | command sed 's/"ref" : "//;s/"$//'))
+        for ws_ref in "${ws_refs[@]}"; do
+            local status_out
+            status_out=$(cmux list-status --workspace "$ws_ref" 2>/dev/null)
+            if echo "$status_out" | command grep -qF "project=${project}"; then
+                existing_ref="$ws_ref"
+                break
+            fi
+        done
 
-        if [[ -n "$existing_id" ]]; then
+        if [[ -n "$existing_ref" ]]; then
             # Workspace already exists — switch to it
-            cmux select-workspace --workspace "$existing_id" 2>/dev/null
+            cmux select-workspace --workspace "$existing_ref" 2>/dev/null
         else
-            # Create new workspace
-            cmux new-workspace 2>/dev/null
-            sleep 0.3
-
-            # Label the workspace with the project name
+            # Configure the current workspace for this project
+            # Tag it so future workon calls can find it
             cmux set-status project "$project" 2>/dev/null
 
-            # Navigate to project dir and start opencode in the first surface
+            # Navigate to project dir and start opencode in the current (left) surface
             cmux send "cd '${project_dir}' && opencode" 2>/dev/null
             cmux send-key enter 2>/dev/null
             sleep 0.1
 
-            # Split right for a plain shell
-            cmux new-split right 2>/dev/null
+            # Split right and capture the new surface ref
+            local split_ref
+            split_ref=$(cmux --json new-split right 2>/dev/null | command grep -o '"surface_ref" : "[^"]*"' | command sed 's/"surface_ref" : "//;s/"$//')
             sleep 0.1
 
-            # Navigate to project dir in the new shell pane
-            cmux send "cd '${project_dir}'" 2>/dev/null
-            cmux send-key enter 2>/dev/null
-
-            # Focus the left surface (opencode)
-            local surfaces_json
-            surfaces_json=$(cmux list-surfaces --json 2>/dev/null)
-            local first_surface
-            first_surface=$(echo "$surfaces_json" | command grep -o '"id":"[^"]*"' | head -1 | command sed 's/"id":"//;s/"$//')
-            if [[ -n "$first_surface" ]]; then
-                cmux focus-surface --surface "$first_surface" 2>/dev/null
+            # Navigate to project dir and launch yazi in the new right surface
+            if [[ -n "$split_ref" ]]; then
+                cmux send --surface "$split_ref" "cd '${project_dir}' && y" 2>/dev/null
+                cmux send-key --surface "$split_ref" enter 2>/dev/null
             fi
+
+            # Focus back to the left (original) surface
+            cmux focus-surface --surface "$CMUX_SURFACE_ID" 2>/dev/null
         fi
     else
         # tmux path (original implementation, unchanged)
@@ -411,43 +408,6 @@ else
         fi
     }
 fi
-
-# Session management — dual-mode (cmux or tmux)
-tls() {
-    if _in_cmux; then
-        cmux list-workspaces
-    else
-        tmux list-sessions
-    fi
-}
-
-ta() {
-    if _in_cmux; then
-        cmux select-workspace --workspace "${1}" 2>/dev/null
-    else
-        tmux attach -t "${1}"
-    fi
-}
-
-tks() {
-    if _in_cmux; then
-        cmux close-workspace --workspace "${1}" 2>/dev/null
-    else
-        tmux kill-session -t "${1}"
-    fi
-}
-
-tka() {
-    if _in_cmux; then
-        local ws_ids
-        ws_ids=(${(f)"$(cmux list-workspaces --json 2>/dev/null | command grep -o '"id":"[^"]*"' | command sed 's/"id":"//;s/"$//')"})
-        for id in "${ws_ids[@]}"; do
-            cmux close-workspace --workspace "$id" 2>/dev/null
-        done
-    else
-        tmux kill-server
-    fi
-}
 
 # Open VS Code in current directory (replaces tmux bind-key o)
 alias code.='open -a "Visual Studio Code" .'
