@@ -20,7 +20,45 @@ workon list         # list ~/code/ dirs, marking active ones
 
 Projects must exist under `~/code/<project>`. Tab completion available.
 
-### Shortcuts
+### Keyboard Shortcuts
+
+**Workspaces**
+
+| Shortcut | Action |
+|----------|--------|
+| `⌘N` | New workspace |
+| `⌘1–8` | Jump to workspace 1–8 |
+| `⌘9` | Jump to last workspace |
+| `⌘⇧W` | Close workspace |
+| `⌘⇧R` | Rename workspace |
+
+**Surfaces (tabs within a pane)**
+
+| Shortcut | Action |
+|----------|--------|
+| `⌘T` | New surface |
+| `⌘W` | Close surface |
+| `⌃1–8` | Jump to surface 1–8 |
+| `⌃9` | Jump to last surface |
+| `⌘⇧[` / `⌃⇧Tab` | Previous surface |
+
+**Split Panes**
+
+| Shortcut | Action |
+|----------|--------|
+| `⌘D` | Split right |
+| `⌘⇧D` | Split down |
+| `⌥⌘←/→/↑/↓` | Focus pane directionally |
+
+**Terminal**
+
+| Shortcut | Action |
+|----------|--------|
+| `⌘K` | Clear scrollback |
+| `⌘+` / `⌘-` | Increase / decrease font size |
+| `⌘0` | Reset font size |
+
+**Shell aliases**
 
 | Command | Action |
 |---------|--------|
