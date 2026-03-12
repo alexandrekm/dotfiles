@@ -109,3 +109,50 @@ y s <chars> <label>   # yank up to target
 |-----|------|--------|
 | `<Leader>c` | normal | Toggle comment on line |
 | `<Leader>c` | visual | Toggle comment on selection |
+
+---
+
+## Keyboard: Moonlander Layer Ideas
+
+Ideas for a dedicated dev navigation layer (activate via a thumb key hold). None of these are implemented yet — pick what makes sense after trying the workflow.
+
+### Pane focus on HJKL (highest value)
+
+`⌥⌘` + arrow is a 3-key combo on a split keyboard, pressed constantly when switching between opencode and yazi. A layer makes it a single keypress.
+
+| Layer + key | Sends | Action |
+|-------------|-------|--------|
+| `H` | `⌥⌘←` | Focus left pane |
+| `L` | `⌥⌘→` | Focus right pane |
+| `K` | `⌥⌘↑` | Focus pane above |
+| `J` | `⌥⌘↓` | Focus pane below |
+
+### cmux workspace and surface shortcuts
+
+| Layer + key | Sends | Action |
+|-------------|-------|--------|
+| `1–8` | `⌘1–8` | Jump to workspace |
+| `9` | `⌘9` | Jump to last workspace |
+| `T` | `⌘T` | New surface |
+| `W` | `⌘⇧W` | Close workspace |
+| `D` | `⌘D` | Split right |
+| `⇧D` | `⌘⇧D` | Split down |
+
+### Thumb key tap-hold
+
+If not already configured, thumb keys can double up:
+
+| Key | Tap | Hold |
+|-----|-----|------|
+| Right inner thumb | `Space` | Layer activate |
+| Left inner thumb | `Backspace` | One-shot `⌘` |
+
+### One-shot modifiers on the layer
+
+Put `⌘`, `⌥`, `⌃`, `⇧` as one-shot keys on the home row so combos like `⌘N` or `⌘⇧W` don't require holding — tap modifier, tap key.
+
+### Notes
+
+- The HJKL pane focus mapping works in both cmux (sends `⌥⌘` + arrow) and can be kept consistent with nvim's `⌃HJKL` window nav — they use different modifiers so there's no conflict.
+- Avoid putting anything on `S` at the layer level if you use it for leap in nvim — it will fire in both contexts.
+
