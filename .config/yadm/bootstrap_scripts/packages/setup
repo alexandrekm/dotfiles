@@ -114,6 +114,10 @@ install_macos_packages() {
         "atuin"
         "font-fira-code-nerd-font"
         "k9s"
+        "fzf"
+        "zoxide"
+        "ripgrep"
+        "yazi"
     )
     
     for package in "${packages[@]}"; do
@@ -130,6 +134,30 @@ install_macos_packages() {
             print_status "green" "$package already installed"
         fi
     done
+}
+
+install_cmux() {
+    if [[ "$OS" != "macos" ]]; then
+        return 0
+    fi
+
+    # Terminal — cmux (Ghostty-based terminal with workspace management)
+    if brew list --cask cmux &> /dev/null; then
+        print_status "green" "cmux already installed"
+    else
+        print_status "blue" "Installing cmux..."
+        brew tap manaflow-ai/cmux
+        brew install --cask cmux
+        print_status "green" "cmux installed successfully"
+    fi
+
+    if [[ ! -L /usr/local/bin/cmux ]]; then
+        print_status "blue" "Creating cmux CLI symlink..."
+        sudo ln -sf "/Applications/cmux.app/Contents/Resources/bin/cmux" /usr/local/bin/cmux
+        print_status "green" "cmux CLI symlink created"
+    else
+        print_status "green" "cmux CLI symlink already exists"
+    fi
 }
 
 install_linux_essential_packages() {
@@ -164,6 +192,7 @@ install_debian_packages() {
         "dust"
         "duf"
         "broot"
+        "zoxide"
     )
     
     for package in "${packages[@]}"; do
@@ -306,6 +335,7 @@ install_linux_nerd_font() {
 main() {
     setup_package_manager
     install_essential_packages
+    install_cmux
     
     # Run OpenCode setup
     local script_dir="$(dirname "${BASH_SOURCE[0]}")"

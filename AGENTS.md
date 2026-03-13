@@ -1,201 +1,46 @@
-# Agents Guide for Dotfiles Repository
+# Agents Guide for Configuration
 
-This document provides AI agents with a structured overview of this dotfiles repository to enable efficient navigation, understanding, and modification of configuration files.
+This file defines how agents should act when the user requests changes to the computer configuration.
 
-## Repository Overview
+## Mental Model
 
-| Attribute | Value |
-|-----------|-------|
-| **Purpose** | Personal dotfiles managed with [Yadm](https://yadm.io/) (Yet Another Dotfiles Manager) |
-| **Owner** | alexandrekm |
-| **Platform Support** | macOS (Darwin), Linux (Debian/Ubuntu) |
-| **Primary Tools** | Neovim, Zsh, Ghostty Terminal |
+Configuration files live at their **canonical system paths** and are tracked in-place by **yadm**. Edit them directly (e.g. `~/.zshrc`). The user pushes changes manually via `yadm commit` / `yadm push` — agents do not need to run yadm commands.
 
-## Directory Structure
+The repo at `~/code/dotfiles` is **only relevant when a new tool is being added** and needs bootstrap support for fresh machine setup. In that case, edit the relevant script under `~/code/dotfiles/.config/yadm/bootstrap_scripts/`.
 
-```
-~/dotfiles/
-├── .config/
-│   ├── ghostty/           # Ghostty terminal configuration
-│   │   └── config         # Theme, opacity, fonts
-│   ├── nvim/              # Neovim configuration (Lua-based)
-│   │   ├── init.lua       # Entry point, bootstraps lazy.nvim
-│   │   └── lua/
-│   │       ├── core/      # Core settings
-│   │       │   ├── options.lua   # vim.opt settings
-│   │       │   └── keymaps.lua   # Key mappings
-│   │       └── plugins/   # Plugin configuration
-│   │           ├── init.lua      # Plugin list (lazy.nvim)
-│   │           └── configs/      # Plugin-specific configs
-│   ├── opencode/          # OpenCode AI configuration
-│   │   └── opencode.jsonc # Provider, TUI, and tool settings
-│   └── yadm/              # Yadm configuration
-│       ├── bootstrap      # Main bootstrap symlink
-│       └── bootstrap_scripts/
-│           ├── bootstrap         # Main orchestrator
-│           ├── packages/setup    # Package manager setup
-│           ├── shell/setup       # Shell configuration
-│           └── utils/functions.sh # Cross-platform utilities
-├── .local/share/          # Local data (fonts, etc.)
-├── .zshrc                 # Main Zsh configuration
-├── .zshrc.os##os.Darwin   # macOS-specific Zsh config
-├── .zshrc.os##os.Linux    # Linux-specific Zsh config
-└── README.md              # Human-readable documentation
-```
+## Documentation
 
-## Key Components
+When documentation needs to be created or updated, save it to `~/code/dotfiles/docs/`.
 
-### 1. Zsh Shell Configuration
+## ZSH Configuration
 
-**Location:** `~/.zshrc`
-
-**Features:**
-- Oh My Zsh with plugins: `git`, `aws`, `docker`, `zsh-autosuggestions`, `zsh-completions`, `you-should-use`
-- Theme: `intheloop`
-- VS Code integration detection
-- Modern CLI tool aliases (`lsd`, `dust`, `duf`, `broot`)
-- Yadm workflow aliases (`yst`, `yco`, `yp`, `ya`, `ycam`, `ypsup`)
-- Atuin shell history integration
-- History isolation: Per-session history with immediate appending (`INC_APPEND_HISTORY`, `no SHARE_HISTORY`)
-
-**OS-Specific Files:**
-- `.zshrc.os##os.Darwin` - macOS-specific settings (Homebrew paths, etc.)
-- `.zshrc.os##os.Linux` - Linux-specific settings
-
-### 2. Neovim Configuration
-
-**Location:** `~/.config/nvim/`
-
-**Architecture:** Modern Lua-based configuration using lazy.nvim plugin manager.
-
-**Key Files:**
 | File | Purpose |
 |------|---------|
-| `init.lua` | Entry point, lazy.nvim bootstrap |
-| `lua/core/options.lua` | Editor settings (indentation, clipboard, line numbers) |
-| `lua/core/keymaps.lua` | Custom key mappings |
-| `lua/plugins/init.lua` | Plugin declarations |
-| `lua/plugins/configs/*.lua` | Per-plugin configuration |
+| `~/.zshrc` | Main shell config — cross-platform |
+| `~/.zshrc.os##os.Darwin` | macOS-specific overrides |
+| `~/.zshrc.os##os.Linux` | Linux-specific overrides |
+| `~/.zsh_plugins.txt` | Antidote plugin list |
 
-**Included Plugins:**
-- `nvim-treesitter` - Syntax highlighting
-- `nvim-lspconfig` - LSP support (pyright, lua_ls, tsserver)
-- `telescope.nvim` - Fuzzy finder
-- `nvim-tree` - File explorer
-- `nerdcommenter` - Code commenting
-- `vim-easymotion` - Quick navigation
-- `which-key` - Keybinding hints
+**Editing:** Use `~/.zshrc` for cross-platform changes. Use the OS-specific file for platform-only settings.
 
-### 3. Ghostty Terminal
-
-**Location:** `~/.config/ghostty/config`
-
-**Configuration:**
-- Theme: Catppuccin Mocha
-- Font: FiraCode Nerd Font (size 14)
-- Background: 90% opacity with blur
-- Window: 120x30 cells
-
-- Window: 120x30 cells
-
-### 4. OpenCode AI Configuration
-
-**Location:** `~/.config/opencode/opencode.jsonc`
-
-**Features:**
-- Provider: OpenAI (gpt-4o)
-- Theme: Catppuccin Mocha
-- Tool permissions: `ask` for write/edit/bash, `allow` for read/webfetch
-- Custom modes: `engineer`, `researcher`
-- MCP integration: GitHub server support
-
-### 5. Bootstrap System
-
-**Location:** `~/.config/yadm/bootstrap_scripts/`
-
-**Purpose:** Automated setup for new machines.
-
-**Components:**
-| Script | Function |
-|--------|----------|
-| `bootstrap` | Main orchestrator |
-| `packages/setup` | Install Homebrew/apt packages |
-| `shell/setup` | Configure Zsh, Git, directories |
-| `utils/functions.sh` | Cross-platform helper functions |
-
-**Usage:**
-```bash
-~/.config/yadm/bootstrap           # Full setup
-~/.config/yadm/bootstrap --packages # Packages only
-~/.config/yadm/bootstrap --nvim    # Neovim only
-~/.config/yadm/bootstrap --shell   # Shell only
-```
-
-## Yadm-Specific Concepts
-
-### Alternate Files
-
-Yadm uses file suffixes to manage platform/class-specific configurations:
-
-| Suffix Pattern | Purpose |
-|----------------|---------|
-| `##os.Darwin` | macOS-specific file |
-| `##os.Linux` | Linux-specific file |
-| `##class.motive` | "motive" class-specific file |
-
-### Common Commands
+**Testing:** Always test after every change:
 
 ```bash
-yadm status              # Check tracked file status
-yadm add <file>          # Track a new file
-yadm commit -m "msg"     # Commit changes
-yadm push                # Push to remote
-yadm pull                # Pull latest changes
-yadm config local.class  # Check current class
-yadm encrypt             # Encrypt sensitive files
-yadm decrypt             # Decrypt files
-```
-
-## Agent Guidelines
-
-### When Modifying Configurations
-
-1. **Zsh changes:** Edit `.zshrc` for cross-platform changes. Use OS-specific files for platform-dependent settings.
-
-2. **Neovim changes:**
-   - New plugins → Add to `lua/plugins/init.lua`
-   - Plugin configs → Create/edit `lua/plugins/configs/<plugin>.lua`
-   - Editor options → Edit `lua/core/options.lua`
-   - Key mappings → Edit `lua/core/keymaps.lua`
-
-3. **New applications:** Create config directory under `.config/<app>/`
-
-4. **Bootstrap additions:** Add new setup scripts under `.config/yadm/bootstrap_scripts/`
-
-### Testing Changes
-
-```bash
-# Reload shell configuration
 source ~/.zshrc
-
-# Validate Neovim configuration
-nvim --headless "+Lazy! sync" +qa
-
-# Check Neovim health
-nvim +checkhealth
 ```
 
-### Committing Changes
+**Bootstrap:** When adding a new tool that requires installation, also update:
+`~/code/dotfiles/.config/yadm/bootstrap_scripts/packages/setup`
 
-```bash
-yadm add <files>
-yadm commit -m "Descriptive message"
-yadm push
-```
+## OpenCode Configuration
 
-## External Resources
+| File/Dir | Purpose |
+|----------|---------|
+| `~/.config/opencode/opencode.jsonc` | Main config — models, MCP servers, plugins, agent definitions |
+| `~/.config/opencode/command/` | Custom slash commands |
+| `~/.config/opencode/skills/` | Skills available to agents |
 
-- [Yadm Documentation](https://yadm.io/docs/)
-- [Lazy.nvim Documentation](https://github.com/folke/lazy.nvim)
-- [Neovim Lua Guide](https://neovim.io/doc/user/lua-guide.html)
-- [Ghostty Documentation](https://ghostty.org/)
+**Note:** `~/.config/opencode` is a symlink to the machine-specific directory (e.g. `opencode-work` or `opencode-personal`) — always edit via the symlink path.
+
+**Bootstrap:** When adding a new MCP server or plugin that requires a package install, also update:
+`~/code/dotfiles/.config/yadm/bootstrap_scripts/packages/opencode_setup`
