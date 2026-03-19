@@ -264,6 +264,18 @@ fi
 # workon <project> — create or attach to a project session (cmux or tmux)
 # Each session gets a 2-pane layout: opencode (left) + shell (right)
 
+# _workon_projects — read project list from ~/.config/workon/projects
+# Returns relative paths from ~/code, one per line. Skips blanks and # comments.
+_workon_projects() {
+    local list_file="${HOME}/.config/workon/projects"
+    if [[ ! -f "$list_file" && ! -L "$list_file" ]]; then
+        echo "workon: project list not found: ${list_file}" >&2
+        echo "workon: create it or symlink projects-work / projects-personal" >&2
+        return 1
+    fi
+    command grep -v '^\s*#' "$list_file" | command grep -v '^\s*$'
+}
+
 _in_cmux() {
     [[ -n "$CMUX_WORKSPACE_ID" ]]
 }
@@ -271,15 +283,53 @@ _in_cmux() {
 workon() {
     local project="${1}"
 
-    # workon list — show ~/code dirs and mark active sessions
-    if [[ "$project" == "list" ]]; then
+    # workon close — tear down a project workspace/session
+    if [[ "$project" == "close" ]]; then
+        local target="${2}"
+        if [[ -z "$target" ]]; then
+            echo "Usage: workon close <project-name>" >&2
+            return 1
+        fi
         if _in_cmux; then
-            # cmux mode: list workspaces and cross-reference with ~/code dirs
+            local ws_refs
+            ws_refs=($(cmux --json list-workspaces 2>/dev/null | command grep -o '"ref" : "[^"]*"' | command sed 's/"ref" : "//;s/"$//'))
+            local found_ref=""
+            for ws_ref in "${ws_refs[@]}"; do
+                local status_out
+                status_out=$(cmux list-status --workspace "$ws_ref" 2>/dev/null)
+                if echo "$status_out" | command grep -qF "project=${target}"; then
+                    found_ref="$ws_ref"
+                    break
+                fi
+            done
+            if [[ -n "$found_ref" ]]; then
+                cmux close-workspace --workspace "$found_ref" 2>/dev/null
+                echo "workon: closed workspace '${target}'"
+            else
+                echo "workon: no workspace found for '${target}'" >&2
+                return 1
+            fi
+        else
+            if tmux has-session -t "$target" 2>/dev/null; then
+                tmux kill-session -t "$target"
+                echo "workon: killed tmux session '${target}'"
+            else
+                echo "workon: no tmux session found for '${target}'" >&2
+                return 1
+            fi
+        fi
+        return 0
+    fi
+
+    # workon list — show projects from list file and mark active sessions
+    if [[ "$project" == "list" ]]; then
+        local projects
+        projects=($(_workon_projects)) || return 1
+        if _in_cmux; then
+            # cmux mode: list workspaces and cross-reference with project list
             local ws_json
             ws_json=$(cmux list-workspaces --json 2>/dev/null)
-            for dir in "${HOME}"/code/*(N/); do
-                local name="${dir:t}"
-                # Check if any workspace has a status entry with this project name
+            for name in "${projects[@]}"; do
                 if echo "$ws_json" | command grep -q "\"$name\"" 2>/dev/null; then
                     echo "  $name  [active]"
                 else
@@ -287,11 +337,10 @@ workon() {
                 fi
             done
         else
-            # tmux mode (unchanged)
+            # tmux mode
             local active
             active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
-            for dir in "${HOME}"/code/*(N/); do
-                local name="${dir:t}"
+            for name in "${projects[@]}"; do
                 if echo "$active" | command grep -qx "$name"; then
                     echo "  $name  [active]"
                 else
@@ -308,6 +357,12 @@ workon() {
     fi
 
     local project_dir="${HOME}/code/${project}"
+
+    # Validate the project is in the list
+    if ! _workon_projects | command grep -qx "$project"; then
+        echo "workon: '${project}' not in project list (~/.config/workon/projects)" >&2
+        return 1
+    fi
 
     if [[ ! -d "$project_dir" ]]; then
         echo "workon: directory not found: ${project_dir}" >&2
@@ -390,12 +445,14 @@ workon() {
     fi
 }
 
-# Tab completion for workon — offers 'list' and directories in ~/code/
+# Tab completion for workon — offers 'list', 'close', and directories in ~/code/
 _workon() {
     local -a projects
-    projects=(list "${HOME}"/code/*(N/:t))
+    projects=(list close $(_workon_projects 2>/dev/null))
     compadd "${projects[@]}"
 }
+
+alias w='workon'
 if (( $+functions[compdef] )); then
     compdef _workon workon
 else
