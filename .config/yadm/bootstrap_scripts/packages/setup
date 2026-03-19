@@ -330,6 +330,21 @@ install_linux_nerd_font() {
 }
 
 
+setup_workon_projects() {
+    local workon_dir="${HOME}/.config/workon"
+    local symlink="${workon_dir}/projects"
+
+    if [[ -L "$symlink" || -f "$symlink" ]]; then
+        print_status "green" "workon project list already configured"
+        return 0
+    fi
+
+    mkdir -p "$workon_dir"
+    print_status "yellow" "workon: project list symlink not set."
+    print_status "yellow" "Run one of:"
+    print_status "yellow" "  ln -sf ${workon_dir}/projects-work ${symlink}"
+    print_status "yellow" "  ln -sf ${workon_dir}/projects-personal ${symlink}"
+}
 
 # Main execution
 main() {
@@ -344,6 +359,8 @@ main() {
     else
         print_status "red" "OpenCode setup script not found at $script_dir/opencode_setup"
     fi
+
+    setup_workon_projects
 
     print_status "green" "Package setup completed!"
 }
