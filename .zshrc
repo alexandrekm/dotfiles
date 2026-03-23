@@ -480,3 +480,5 @@ fi
 if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
     zprof
 fi
+
+. "$HOME/.atuin/bin/env"
