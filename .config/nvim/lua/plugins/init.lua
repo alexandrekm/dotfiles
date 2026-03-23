@@ -5,7 +5,7 @@ local plugins = {
 
   -- Leap (navigation plugin)
   {
-    'ggandor/leap.nvim',
+    url = "https://codeberg.org/andyg/leap.nvim",
     config = function() require('plugins.configs.leap') end,
   },
 
