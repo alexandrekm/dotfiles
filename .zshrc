@@ -1,4 +1,6 @@
 export TERM=xterm-256color
+export EDITOR=nvim
+export VISUAL=nvim
 
 if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
     zmodload zsh/zprof
@@ -172,7 +174,9 @@ zstyle ':completion:*' group-name ''
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:warnings' format 'no matches for: %d'
 zstyle ':completion:*' squeeze-slashes true
-zstyle ':fzf-tab:complete:*' fzf-flags '--height=50% --layout=reverse --border=rounded'
+
+# Disable fzf-tab — use plain list completion like bash
+(( $+functions[disable-fzf-tab] )) && disable-fzf-tab
 
 # you-should-use plugin keybinding
 if (( $+functions[create_completion] )); then

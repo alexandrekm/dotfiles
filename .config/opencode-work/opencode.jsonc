@@ -6,6 +6,9 @@
             "model": "github-copilot/claude-sonnet-4.6",
             "permission": {
                 "bash": {
+                    // GIT
+                    "git commit*": "ask",
+                    "git push*": "ask",
                     // anyscale auth
                     "anyscale login*": "ask",
                     "anyscale logout*": "ask",
