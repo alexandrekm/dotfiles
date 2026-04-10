@@ -137,6 +137,20 @@ install_macos_packages() {
     done
 }
 
+install_bunch() {
+    if [[ "$OS" != "macos" ]]; then
+        return 0
+    fi
+
+    if brew list --cask bunch &> /dev/null; then
+        print_status "green" "bunch already installed"
+    else
+        print_status "blue" "Installing bunch..."
+        brew install --cask bunch
+        print_status "green" "bunch installed successfully"
+    fi
+}
+
 install_cmux() {
     if [[ "$OS" != "macos" ]]; then
         return 0
@@ -439,6 +453,7 @@ setup_workon_projects() {
 main() {
     setup_package_manager
     install_essential_packages
+    install_bunch
     install_cmux
     
     # Run OpenCode setup
