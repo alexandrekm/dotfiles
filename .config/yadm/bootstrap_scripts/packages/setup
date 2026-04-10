@@ -118,7 +118,6 @@ install_macos_packages() {
         "zoxide"
         "ripgrep"
         "yazi"
-        "bun"
     )
     
     for package in "${packages[@]}"; do
@@ -137,17 +136,19 @@ install_macos_packages() {
     done
 }
 
-install_bunch() {
-    if [[ "$OS" != "macos" ]]; then
+install_bun() {
+    if command -v bun &> /dev/null; then
+        print_status "green" "bun already installed"
         return 0
     fi
 
-    if brew list --cask bunch &> /dev/null; then
-        print_status "green" "bunch already installed"
+    print_status "blue" "Installing bun..."
+    curl -fsSL https://bun.sh/install | bash
+
+    if command -v bun &> /dev/null; then
+        print_status "green" "bun installed successfully"
     else
-        print_status "blue" "Installing bunch..."
-        brew install --cask bunch
-        print_status "green" "bunch installed successfully"
+        print_status "red" "Failed to install bun"
     fi
 }
 
@@ -453,7 +454,7 @@ setup_workon_projects() {
 main() {
     setup_package_manager
     install_essential_packages
-    install_bunch
+    install_bun
     install_cmux
     
     # Run OpenCode setup
