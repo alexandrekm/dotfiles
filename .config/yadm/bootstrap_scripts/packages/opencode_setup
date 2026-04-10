@@ -20,9 +20,15 @@ setup_opencode() {
     brew install anomalyco/tap/opencode || true
 }
 
+install_opencode_global_packages() {
+    print_status "blue" "Installing OpenCode global packages..."
+    bun install -g cc-safety-net
+}
+
 # Main execution
 main() {
     setup_opencode
+    install_opencode_global_packages
 }
 
 # Run if executed directly

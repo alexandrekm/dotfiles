@@ -118,6 +118,7 @@ install_macos_packages() {
         "zoxide"
         "ripgrep"
         "yazi"
+        "bun"
     )
     
     for package in "${packages[@]}"; do
