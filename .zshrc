@@ -69,9 +69,10 @@ fi
 # -----------------------------------------------------------------------------
 # History Configuration
 # -----------------------------------------------------------------------------
-# Isolate shell history per session — no sharing between tabs
+# Per-tab isolation during a session — tabs don't see each other's live commands.
+# On exit, each session appends its history so new sessions inherit everything.
 unsetopt SHARE_HISTORY
-unsetopt INC_APPEND_HISTORY
+setopt INC_APPEND_HISTORY
 
 # -----------------------------------------------------------------------------
 # General Aliases
@@ -83,6 +84,7 @@ alias myip='curl ipinfo.io/ip'
 alias reload='source ~/.zshrc'
 alias kx='kubectx'
 alias kns='kubens'
+alias kpo='kubectl get pods'
 
 # Use modern alternatives for better output
 alias ls='lsd'
@@ -485,4 +487,18 @@ if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
     zprof
 fi
 
-. "$HOME/.atuin/bin/env"
+[[ -f "$HOME/.atuin/bin/env" ]] && . "$HOME/.atuin/bin/env"
+
+# >>> mise bootstrap managed by local-dev >>>
+# mise activation marker not set due to; 
+# less pollute the shell rc files directly.
+# Please refer to the .envrc file in the project directory for mise activation instructions.
+# TO manually activate mise, run the mise activate zsh command in your shell.
+# <<< end mise bootstrap managed by local-dev <<<
+
+# >>> local-dev managed PATH >>>
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then export PATH="$HOME/.local/bin:$PATH"; fi
+# <<< end local-dev managed PATH <<<
+# >>> direnv bootstrap managed by local-dev >>>
+eval "$(direnv hook zsh)"
+# <<< end direnv bootstrap managed by local-dev <<<
