@@ -10,3 +10,10 @@ window-height = 30
 font-family = FiraCode Nerd Font
 font-size = 14
 auto-update = check
+
+# cmux split pane styling (matches Catppuccin Mocha palette)
+unfocused-split-opacity = 0.85
+split-divider-color = #45475a
+
+# Default working directory for new cmux workspaces
+working-directory = ~/code

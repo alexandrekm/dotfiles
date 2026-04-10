@@ -3,7 +3,101 @@
     "small_model": "github-copilot/gpt-5-mini",
     "agent": {
         "build": {
-            "model": "github-copilot/claude-sonnet-4.6"
+            "model": "github-copilot/claude-sonnet-4.6",
+            "permission": {
+                "bash": {
+                    // GIT
+                    "git commit*": "ask",
+                    "git push*": "ask",
+                    // anyscale auth
+                    "anyscale login*": "ask",
+                    "anyscale logout*": "ask",
+                    // anyscale cloud (state-changing)
+                    "anyscale cloud register*": "ask",
+                    "anyscale cloud edit*": "ask",
+                    "anyscale cloud update*": "ask",
+                    "anyscale cloud delete*": "ask",
+                    "anyscale cloud set-default*": "ask",
+                    "anyscale cloud add-collaborators*": "ask",
+                    "anyscale cloud setup*": "ask",
+                    "anyscale cloud terminate-system-cluster*": "ask",
+                    "anyscale cloud config*": "ask",
+                    "anyscale cloud resource*": "ask",
+                    // anyscale cluster (state-changing)
+                    "anyscale cluster start*": "ask",
+                    "anyscale cluster terminate*": "ask",
+                    "anyscale cluster archive*": "ask",
+                    // anyscale cluster-env (state-changing)
+                    "anyscale cluster-env build*": "ask",
+                    "anyscale cluster-env archive*": "ask",
+                    // anyscale compute-config (state-changing)
+                    "anyscale compute-config create*": "ask",
+                    "anyscale compute-config archive*": "ask",
+                    // anyscale image (state-changing)
+                    "anyscale image build*": "ask",
+                    "anyscale image register*": "ask",
+                    // anyscale job (state-changing)
+                    "anyscale job submit*": "ask",
+                    "anyscale job terminate*": "ask",
+                    "anyscale job archive*": "ask",
+                    "anyscale job tags*": "ask",
+                    // anyscale job-queue (state-changing)
+                    "anyscale job-queue update*": "ask",
+                    "anyscale job-queue tags*": "ask",
+                    // anyscale machine (state-changing)
+                    "anyscale machine delete*": "ask",
+                    // anyscale machine-pool (state-changing)
+                    "anyscale machine-pool create*": "ask",
+                    "anyscale machine-pool delete*": "ask",
+                    "anyscale machine-pool update*": "ask",
+                    "anyscale machine-pool attach*": "ask",
+                    "anyscale machine-pool detach*": "ask",
+                    // anyscale organization-invitation (state-changing)
+                    "anyscale organization-invitation create*": "ask",
+                    "anyscale organization-invitation delete*": "ask",
+                    // anyscale project (state-changing)
+                    "anyscale project create*": "ask",
+                    "anyscale project delete*": "ask",
+                    "anyscale project add-collaborators*": "ask",
+                    // anyscale resource-quota (state-changing)
+                    "anyscale resource-quota create*": "ask",
+                    "anyscale resource-quota delete*": "ask",
+                    "anyscale resource-quota enable*": "ask",
+                    "anyscale resource-quota disable*": "ask",
+                    // anyscale schedule (state-changing)
+                    "anyscale schedule apply*": "ask",
+                    "anyscale schedule create*": "ask",
+                    "anyscale schedule update*": "ask",
+                    "anyscale schedule pause*": "ask",
+                    "anyscale schedule resume*": "ask",
+                    "anyscale schedule run*": "ask",
+                    // anyscale service (state-changing)
+                    "anyscale service deploy*": "ask",
+                    "anyscale service rollout*": "ask",
+                    "anyscale service rollback*": "ask",
+                    "anyscale service terminate*": "ask",
+                    "anyscale service delete*": "ask",
+                    "anyscale service archive*": "ask",
+                    "anyscale service tags*": "ask",
+                    // anyscale service-account (state-changing)
+                    "anyscale service-account create*": "ask",
+                    "anyscale service-account create-api-key*": "ask",
+                    "anyscale service-account delete*": "ask",
+                    // anyscale user (state-changing)
+                    "anyscale user batch-create*": "ask",
+                    // anyscale workspace (state-changing)
+                    "anyscale workspace tags*": "ask",
+                    "anyscale workspace terminate*": "ask",
+                    "anyscale workspace push*": "ask",
+                    // anyscale workspace_v2 (state-changing)
+                    "anyscale workspace_v2 create*": "ask",
+                    "anyscale workspace_v2 update*": "ask",
+                    "anyscale workspace_v2 start*": "ask",
+                    "anyscale workspace_v2 terminate*": "ask",
+                    "anyscale workspace_v2 push*": "ask",
+                    "anyscale workspace_v2 run_command*": "ask"
+                }
+            }
         },
         "plan": {
             "model": "github-copilot/claude-opus-4.6",
@@ -11,45 +105,14 @@
                 "type": "enabled",
                 "budgetTokens": 16000
             }
-        },
-        "explorer": {
-            "model": "github-copilot/claude-sonnet-4.6",
-            "mode": "all",
-            "color": "#89b4fa",
-            "description": "Deep codebase exploration, research, and synthesis -- read-only",
-            "steps": 80,
-            "permission": {
-                "read": "allow",
-                "glob": "allow",
-                "grep": "allow",
-                "list": "allow",
-                "webfetch": "allow",
-                "task": "allow",
-                "skill": "allow",
-                "question": "allow",
-                "todowrite": "allow",
-                "todoread": "allow",
-                "codesearch": "allow",
-                "edit": "deny",
-                "bash": {
-                    "git log*": "allow",
-                    "git diff*": "allow",
-                    "git status": "allow",
-                    "git show*": "allow",
-                    "git branch*": "allow",
-                    "wc *": "allow",
-                    "ls *": "allow",
-                    "*": "deny"
-                }
-            },
-            "prompt": "You are an explorer agent -- a read-only research and codebase exploration specialist.\n\n## Core Identity\nYou explore, analyze, and synthesize information. You NEVER modify files, create files, or make changes. Your job is to deeply understand code, architecture, and external resources, then communicate your findings clearly.\n\n## Capabilities\n- **Codebase exploration:** Use glob, grep, and read to navigate and understand codebases thoroughly\n- **Documentation lookup:** Use Context7 MCP to look up library/framework documentation\n- **Web research:** Use WebFetch to fetch documentation pages and technical resources\n- **Git history analysis:** Read git logs, diffs, and commit history (read-only git commands only)\n- **Parallel exploration:** Dispatch sub-explorer tasks for large codebases\n\n## Output Format\n- Default: Concise, structured inline responses with code references (file:line format)\n- When asked: Save comprehensive findings to a markdown file\n- Always include relevant file paths and line numbers\n- Use tables for comparisons, bullet points for lists, code blocks for examples\n\n## Exploration Approach\n1. Start with high-level structure (glob for key files, directory layout)\n2. Identify entry points and key abstractions\n3. Trace data flow and dependencies\n4. Synthesize findings into actionable insights\n5. Highlight patterns, potential issues, and architectural decisions\n\n## Constraints\n- NEVER use edit, write, or destructive bash commands\n- NEVER modify any files -- you are strictly read-only\n- When you need to save findings to a file, ask the user to switch to an agent with write permissions\n- Focus on accuracy over speed -- verify claims by reading actual code"
         }
     },
     "plugin": [
         "cc-safety-net",
-        "@ramtinj95/opencode-tokenscope@latest",
+        //"@ramtinj95/opencode-tokenscope@latest",
         "@mohak34/opencode-notifier@latest",
-        "@plannotator/opencode@latest"
+        "@plannotator/opencode@latest",
+        "opencode-cmux"
     ],
     "experimental": {
         "disable_paste_summary": true
@@ -63,6 +126,11 @@
         "playwright": {
             "type": "local",
             "command": ["npx", "-y", "@playwright/mcp@latest"],
+            "enabled": true
+        },
+        "datadog": {
+            "type": "local",
+            "command": ["/Users/alexandre.mendonca/.local/bin/datadog_mcp_cli"],
             "enabled": true
         }
     }

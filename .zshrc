@@ -1,4 +1,6 @@
 export TERM=xterm-256color
+export EDITOR=nvim
+export VISUAL=nvim
 
 if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
     zmodload zsh/zprof
@@ -20,18 +22,25 @@ if [[ "$GIT_PAGER" == "cat" ]]; then
     PROMPT='🤖 copilot %% '
     export AWS_PAGER=""
 
-    # Auto-attach to the tmux session matching this workspace, if one exists.
+    # Surface active workon sessions for this workspace in VS Code's integrated terminal.
     # VS Code starts the terminal in the workspace root — match it to ~/code/<name>.
-    # Only attach if: not already inside tmux, tmux is running, and PWD is a ~/code/* project.
-    if [[ -z "$TMUX" ]] && command -v tmux &>/dev/null; then
-        local _vscode_project="${PWD#$HOME/code/}"
-        if [[ "$_vscode_project" != "$PWD" && "$_vscode_project" != */* ]]; then
+    local _vscode_project="${PWD#$HOME/code/}"
+    if [[ "$_vscode_project" != "$PWD" && "$_vscode_project" != */* ]]; then
+        if [[ -n "$CMUX_WORKSPACE_ID" ]] && command -v cmux &>/dev/null; then
+            # Inside a cmux workspace — hint to switch there
+            local _cmux_ws
+            _cmux_ws=$(cmux list-workspaces --json 2>/dev/null | command grep -F "${HOME}/code/${_vscode_project}" | command grep -o '"id":"[^"]*"' | head -1 | command sed 's/"id":"//;s/"$//')
+            if [[ -n "$_cmux_ws" ]]; then
+                echo "cmux workspace '${_vscode_project}' is running. Switch with: ta ${_cmux_ws}"
+            fi
+        elif [[ -z "$TMUX" ]] && command -v tmux &>/dev/null; then
+            # tmux path (original logic)
             if tmux has-session -t "$_vscode_project" 2>/dev/null; then
                 echo "tmux session '$_vscode_project' is running. Attach with: ta $_vscode_project"
             fi
         fi
-        unset _vscode_project
     fi
+    unset _vscode_project
 else
     # -------------------------------------------------------------------------
     # Antidote Plugin Manager
@@ -165,7 +174,9 @@ zstyle ':completion:*' group-name ''
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:warnings' format 'no matches for: %d'
 zstyle ':completion:*' squeeze-slashes true
-zstyle ':fzf-tab:complete:*' fzf-flags '--height=50% --layout=reverse --border=rounded'
+
+# Disable fzf-tab — use plain list completion like bash
+(( $+functions[disable-fzf-tab] )) && disable-fzf-tab
 
 # you-should-use plugin keybinding
 if (( $+functions[create_completion] )); then
@@ -254,23 +265,93 @@ fi
 # tmux Workflow
 # -----------------------------------------------------------------------------
 
-# workon <project> — create or attach to a project tmux session
+# workon <project> — create or attach to a project session (cmux or tmux)
 # Each session gets a 2-pane layout: opencode (left) + shell (right)
+
+# _workon_projects — read project list from ~/.config/workon/projects
+# Returns relative paths from ~/code, one per line. Skips blanks and # comments.
+_workon_projects() {
+    local list_file="${HOME}/.config/workon/projects"
+    if [[ ! -f "$list_file" && ! -L "$list_file" ]]; then
+        echo "workon: project list not found: ${list_file}" >&2
+        echo "workon: create it or symlink projects-work / projects-personal" >&2
+        return 1
+    fi
+    command grep -v '^\s*#' "$list_file" | command grep -v '^\s*$'
+}
+
+_in_cmux() {
+    [[ -n "$CMUX_WORKSPACE_ID" ]]
+}
+
 workon() {
     local project="${1}"
 
-    # workon list — show ~/code dirs and mark active tmux sessions
-    if [[ "$project" == "list" ]]; then
-        local active
-        active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
-        for dir in "${HOME}"/code/*(N/); do
-            local name="${dir:t}"
-            if echo "$active" | grep -qx "$name"; then
-                echo "  $name  [active]"
+    # workon close — tear down a project workspace/session
+    if [[ "$project" == "close" ]]; then
+        local target="${2}"
+        if [[ -z "$target" ]]; then
+            echo "Usage: workon close <project-name>" >&2
+            return 1
+        fi
+        if _in_cmux; then
+            local ws_refs
+            ws_refs=($(cmux --json list-workspaces 2>/dev/null | command grep -o '"ref" : "[^"]*"' | command sed 's/"ref" : "//;s/"$//'))
+            local found_ref=""
+            for ws_ref in "${ws_refs[@]}"; do
+                local status_out
+                status_out=$(cmux list-status --workspace "$ws_ref" 2>/dev/null)
+                if echo "$status_out" | command grep -qF "project=${target}"; then
+                    found_ref="$ws_ref"
+                    break
+                fi
+            done
+            if [[ -n "$found_ref" ]]; then
+                cmux close-workspace --workspace "$found_ref" 2>/dev/null
+                echo "workon: closed workspace '${target}'"
             else
-                echo "  $name"
+                echo "workon: no workspace found for '${target}'" >&2
+                return 1
             fi
-        done
+        else
+            if tmux has-session -t "$target" 2>/dev/null; then
+                tmux kill-session -t "$target"
+                echo "workon: killed tmux session '${target}'"
+            else
+                echo "workon: no tmux session found for '${target}'" >&2
+                return 1
+            fi
+        fi
+        return 0
+    fi
+
+    # workon list — show projects from list file and mark active sessions
+    if [[ "$project" == "list" ]]; then
+        local projects
+        projects=($(_workon_projects)) || return 1
+        if _in_cmux; then
+            # cmux mode: list workspaces and cross-reference with project list
+            local ws_json
+            ws_json=$(cmux list-workspaces --json 2>/dev/null)
+            for name in "${projects[@]}"; do
+                if echo "$ws_json" | command grep -q "\"$name\"" 2>/dev/null; then
+                    echo "  $name  [active]"
+                else
+                    echo "  $name"
+                fi
+            done
+        else
+            # tmux mode
+            local active
+            active=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+            for name in "${projects[@]}"; do
+                if echo "$active" | command grep -qx "$name"; then
+                    echo "  $name  [active]"
+                else
+                    echo "  $name"
+                fi
+            done
+        fi
         return 0
     fi
 
@@ -281,47 +362,101 @@ workon() {
 
     local project_dir="${HOME}/code/${project}"
 
+    # Validate the project is in the list
+    if ! _workon_projects | command grep -qx "$project"; then
+        echo "workon: '${project}' not in project list (~/.config/workon/projects)" >&2
+        return 1
+    fi
+
     if [[ ! -d "$project_dir" ]]; then
         echo "workon: directory not found: ${project_dir}" >&2
         return 1
     fi
 
-    # Session already exists — attach or switch to it
-    if tmux has-session -t "$project" 2>/dev/null; then
+    if _in_cmux; then
+        # cmux path: find existing workspace for this project (by status key) or configure current one
+
+        # Iterate workspaces and look for one tagged with project=$project via set-status
+        local existing_ref=""
+        local ws_refs
+        ws_refs=($(cmux --json list-workspaces 2>/dev/null | command grep -o '"ref" : "[^"]*"' | command sed 's/"ref" : "//;s/"$//'))
+        for ws_ref in "${ws_refs[@]}"; do
+            local status_out
+            status_out=$(cmux list-status --workspace "$ws_ref" 2>/dev/null)
+            if echo "$status_out" | command grep -qF "project=${project}"; then
+                existing_ref="$ws_ref"
+                break
+            fi
+        done
+
+        if [[ -n "$existing_ref" ]]; then
+            # Workspace already exists — switch to it
+            cmux select-workspace --workspace "$existing_ref" 2>/dev/null
+        else
+            # Configure the current workspace for this project
+            # Tag it so future workon calls can find it
+            cmux set-status project "$project" 2>/dev/null
+
+            # Navigate to project dir and start opencode in the current (left) surface
+            cmux send "cd '${project_dir}' && opencode" 2>/dev/null
+            cmux send-key enter 2>/dev/null
+            sleep 0.1
+
+            # Split right and capture the new surface ref
+            local split_ref
+            split_ref=$(cmux --json new-split right 2>/dev/null | command grep -o '"surface_ref" : "[^"]*"' | command sed 's/"surface_ref" : "//;s/"$//')
+            sleep 0.1
+
+            # Navigate to project dir and launch yazi in the new right surface
+            if [[ -n "$split_ref" ]]; then
+                cmux send --surface "$split_ref" "cd '${project_dir}' && y" 2>/dev/null
+                cmux send-key --surface "$split_ref" enter 2>/dev/null
+            fi
+
+            # Focus back to the left (original) surface
+            cmux focus-surface --surface "$CMUX_SURFACE_ID" 2>/dev/null
+        fi
+    else
+        # tmux path (original implementation, unchanged)
+        # Session already exists — attach or switch to it
+        if tmux has-session -t "$project" 2>/dev/null; then
+            if [[ -n "$TMUX" ]]; then
+                tmux switch-client -t "$project"
+            else
+                tmux attach-session -t "$project"
+            fi
+            return 0
+        fi
+
+        # Create a new session (detached so we can configure it first)
+        tmux new-session -d -s "$project" -n "opencode" -c "$project_dir"
+
+        # Start opencode in the first (left) pane
+        tmux send-keys -t "${project}:opencode.1" "opencode" Enter
+
+        # Split right at 35% width, starting a plain shell
+        tmux split-window -t "${project}:opencode" -h -p 33 -c "$project_dir"
+
+        # Focus the left pane (opencode)
+        tmux select-pane -t "${project}:opencode.1"
+
+        # Attach or switch to the new session
         if [[ -n "$TMUX" ]]; then
             tmux switch-client -t "$project"
         else
             tmux attach-session -t "$project"
         fi
-        return 0
-    fi
-
-    # Create a new session (detached so we can configure it first)
-    tmux new-session -d -s "$project" -n "opencode" -c "$project_dir"
-
-    # Start opencode in the first (left) pane
-    tmux send-keys -t "${project}:opencode.1" "opencode" Enter
-
-    # Split right at 35% width, starting a plain shell
-    tmux split-window -t "${project}:opencode" -h -p 33 -c "$project_dir"
-
-    # Focus the left pane (opencode)
-    tmux select-pane -t "${project}:opencode.1"
-
-    # Attach or switch to the new session
-    if [[ -n "$TMUX" ]]; then
-        tmux switch-client -t "$project"
-    else
-        tmux attach-session -t "$project"
     fi
 }
 
-# Tab completion for workon — offers 'list' and directories in ~/code/
+# Tab completion for workon — offers 'list', 'close', and directories in ~/code/
 _workon() {
     local -a projects
-    projects=(list "${HOME}"/code/*(N/:t))
+    projects=(list close $(_workon_projects 2>/dev/null))
     compadd "${projects[@]}"
 }
+
+alias w='workon'
 if (( $+functions[compdef] )); then
     compdef _workon workon
 else
@@ -335,11 +470,8 @@ else
     }
 fi
 
-# tmux session aliases
-alias tls='tmux list-sessions'       # List all project sessions
-alias tks='tmux kill-session -t'     # Kill a specific session: tks <name>
-alias tka='tmux kill-server'         # Kill all sessions (nuclear)
-alias ta='tmux attach -t'            # Attach to a session: ta <name>
+# Open VS Code in current directory (replaces tmux bind-key o)
+alias code.='open -a "Visual Studio Code" .'
 
 # -----------------------------------------------------------------------------
 # Local Environment Overrides
@@ -352,3 +484,5 @@ fi
 if [[ -n "$ZSH_PROFILE_STARTUP" ]]; then
     zprof
 fi
+
+. "$HOME/.atuin/bin/env"

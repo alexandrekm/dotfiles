@@ -19,4 +19,11 @@ alias less='bat'
 alias more='bat'
 
 # VS Code stable (explicit path avoids picking up Insiders or Cursor)
-alias code='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+# Using a function instead of alias to correctly handle paths with spaces
+code() {
+  if [[ $# -eq 1 && -f "$1" ]]; then
+    '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' "$(dirname "$1")" --goto "$1"
+  else
+    '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' "$@"
+  fi
+}

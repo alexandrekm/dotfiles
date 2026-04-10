@@ -1,0 +1,44 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    // "$schema": "https://opencode.ai/config.json",
+    // Terminal UI options
+    "tui": {
+        "theme": "catppuccin-mocha",
+        "compact": false,
+        "scroll_speed": 3,
+        "scroll_acceleration": {
+            "enabled": true
+        },
+        "enterToSubmit": true
+    },
+    // Server defaults
+    "server": {
+        "port": 4569
+    },
+    "plugin": [
+        // "cc-safety-net",
+        "@ramtinj95/opencode-tokenscope@latest"
+    ]
+    // MCP servers
+    // "mcp": {
+    //     "github": {
+    //         "type": "local",
+    //         "command": [
+    //             "npx",
+    //             "-y",
+    //             "@modelcontextprotocol/server-github"
+    //         ],
+    //         "env": {
+    //             "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+    //         }
+    //     },
+    //     "git": {
+    //         "type": "local",
+    //         "command": [
+    //             "npx",
+    //             "-y",
+    //             "@modelcontextprotocol/server-git"
+    //         ]
+    //     }
+    // }
+}

@@ -190,9 +190,7 @@ install_debian_packages() {
         "watch"
         "bat"
         "lsd"
-        "dust"
         "duf"
-        "broot"
         "zoxide"
     )
     
@@ -211,6 +209,12 @@ install_debian_packages() {
         fi
     done
     
+    # Install dust for Linux (not available via apt)
+    install_dust_linux
+
+    # Install broot for Linux (not available via apt)
+    install_broot_linux
+
     # Install atuin for Linux
     install_atuin_linux
     
@@ -219,6 +223,90 @@ install_debian_packages() {
     
     # Install FiraCode Nerd Font for Linux
     install_linux_nerd_font
+}
+
+install_dust_linux() {
+    if command_exists dust; then
+        print_status "green" "dust already installed"
+        return 0
+    fi
+
+    print_status "blue" "Installing dust..."
+
+    local install_dir="$HOME/.local/bin"
+    mkdir -p "$install_dir"
+
+    local arch=$(uname -m)
+    case $arch in
+        x86_64)  arch="x86_64" ;;
+        aarch64|arm64) arch="aarch64" ;;
+        *)
+            print_status "red" "Unsupported architecture for dust: $arch"
+            return 1
+            ;;
+    esac
+
+    local temp_dir=$(mktemp -d)
+    local dust_version
+    dust_version=$(curl -fsSL https://api.github.com/repos/bootandy/dust/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+
+    local download_url="https://github.com/bootandy/dust/releases/download/${dust_version}/dust-${dust_version}-${arch}-unknown-linux-musl.tar.gz"
+
+    curl -fsSL "$download_url" -o "$temp_dir/dust.tar.gz"
+
+    if [[ $? -eq 0 ]]; then
+        tar -xzf "$temp_dir/dust.tar.gz" -C "$temp_dir" --strip-components=1
+        mv "$temp_dir/dust" "$install_dir/"
+        chmod +x "$install_dir/dust"
+        print_status "green" "dust installed successfully"
+    else
+        print_status "red" "Failed to download dust"
+    fi
+
+    rm -rf "$temp_dir"
+}
+
+install_broot_linux() {
+    if command_exists broot; then
+        print_status "green" "broot already installed"
+        return 0
+    fi
+
+    print_status "blue" "Installing broot..."
+
+    local install_dir="$HOME/.local/bin"
+    mkdir -p "$install_dir"
+
+    local arch=$(uname -m)
+    local zip_arch
+    case $arch in
+        x86_64)  zip_arch="x86_64-unknown-linux-musl" ;;
+        aarch64|arm64) zip_arch="aarch64-unknown-linux-musl" ;;
+        *)
+            print_status "red" "Unsupported architecture for broot: $arch"
+            return 1
+            ;;
+    esac
+
+    local broot_version
+    broot_version=$(curl -fsSL https://api.github.com/repos/Canop/broot/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+    local broot_version_num="${broot_version#v}"
+
+    local temp_dir=$(mktemp -d)
+    local download_url="https://github.com/Canop/broot/releases/download/${broot_version}/broot_${broot_version_num}.zip"
+
+    curl -fsSL "$download_url" -o "$temp_dir/broot.zip"
+
+    if [[ $? -eq 0 ]]; then
+        unzip -q "$temp_dir/broot.zip" "${zip_arch}/broot" -d "$temp_dir"
+        mv "$temp_dir/${zip_arch}/broot" "$install_dir/broot"
+        chmod +x "$install_dir/broot"
+        print_status "green" "broot installed successfully"
+    else
+        print_status "red" "Failed to download broot"
+    fi
+
+    rm -rf "$temp_dir"
 }
 
 install_atuin_linux() {

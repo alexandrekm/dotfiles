@@ -3,9 +3,20 @@
 -- to `plugins/configs/*.lua` to keep startup fast.
 local plugins = {
 
+  -- Dracula colorscheme
+  {
+    'Mofiqul/dracula.nvim',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      require('dracula').setup()
+      vim.cmd.colorscheme('dracula')
+    end,
+  },
+
   -- Leap (navigation plugin)
   {
-    'ggandor/leap.nvim',
+    url = "https://codeberg.org/andyg/leap.nvim",
     config = function() require('plugins.configs.leap') end,
   },
 
