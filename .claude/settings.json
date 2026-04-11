@@ -1,26 +1,16 @@
 {
+  "auto_approve_tools": true,
   "attribution": {
     "commit": "",
     "pr": ""
   },
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/safety-net-ask.sh"
-          }
-        ]
-      }
-    ],
     "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "cmux set-status claude '󰧑 active' 2>/dev/null || true; cmux clear-progress 2>/dev/null || true; cmux log --level info --source claude 'Session started' 2>/dev/null || true",
+            "command": "(cat | cmux claude-hook session-start >/dev/null 2>&1 || true); cmux set-status claude '󰧑 active' >/dev/null 2>&1 || true; cmux clear-progress >/dev/null 2>&1 || true; cmux log --level info --source claude 'Session started' >/dev/null 2>&1 || true",
             "async": true
           }
         ]
@@ -35,7 +25,7 @@
           },
           {
             "type": "command",
-            "command": "cmux set-status claude '󰧑 working' 2>/dev/null || true; cmux set-progress 0.1 2>/dev/null || true",
+            "command": "cmux set-status claude '󰧑 working' >/dev/null 2>&1 || true; cmux set-progress 0.1 >/dev/null 2>&1 || true",
             "async": true
           }
         ]
@@ -50,7 +40,18 @@
           },
           {
             "type": "command",
-            "command": "cmux set-status claude '󰧑 idle' 2>/dev/null || true; cmux clear-progress 2>/dev/null || true; cmux log --level success --source claude 'Done' 2>/dev/null || true",
+            "command": "(cat | cmux claude-hook stop >/dev/null 2>&1 || true) && (cmux set-status claude '󰧑 idle' >/dev/null 2>&1 || true) && (cmux clear-progress >/dev/null 2>&1 || true) && (cmux log --level success --source claude 'Done' >/dev/null 2>&1 || true)",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat | cmux claude-hook notification >/dev/null 2>&1 || true",
             "async": true
           }
         ]
@@ -66,7 +67,7 @@
           },
           {
             "type": "command",
-            "command": "input=$(cat); tool=$(echo \"$input\" | jq -r '.tool_name // \"unknown\"'); detail=$(echo \"$input\" | jq -r '(.tool_input.command // .tool_input.file_path // \"\") | .[0:80]'); cmux log --level info --source claude \"$tool${detail:+: $detail}\" 2>/dev/null || true",
+            "command": "input=$(cat); tool=$(echo \"$input\" | jq -r '.tool_name // \"unknown\"'); detail=$(echo \"$input\" | jq -r '(.tool_input.command // .tool_input.file_path // \"\") | .[0:80]'); cmux log --level info --source claude \"$tool${detail:+: $detail}\" >/dev/null 2>&1 || true",
             "async": true
           }
         ]
@@ -82,8 +83,19 @@
           },
           {
             "type": "command",
-            "command": "input=$(cat); tool=$(echo \"$input\" | jq -r '.tool_name // \"unknown\"'); cmux log --level error --source claude \"$tool failed\" 2>/dev/null || true",
+            "command": "input=$(cat); tool=$(echo \"$input\" | jq -r '.tool_name // \"unknown\"'); cmux log --level error --source claude \"$tool failed\" >/dev/null 2>&1 || true",
             "async": true
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/command-guard.js"
           }
         ]
       }
@@ -98,7 +110,7 @@
           },
           {
             "type": "command",
-            "command": "cmux log --level warning --source claude 'Needs approval' 2>/dev/null || true; cmux notify --title 'Claude Code' --body 'Waiting for your approval' 2>/dev/null || true",
+            "command": "cmux log --level warning --source claude 'Needs approval' >/dev/null 2>&1 || true; cmux notify --title 'Claude Code' --body 'Waiting for your approval' >/dev/null 2>&1 || true",
             "async": true
           }
         ]
@@ -110,12 +122,6 @@
     "plannotator@plannotator": true
   },
   "extraKnownMarketplaces": {
-    "cc-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "kenryu42/cc-marketplace"
-      }
-    },
     "plannotator": {
       "source": {
         "source": "github",

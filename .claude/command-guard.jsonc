@@ -1,0 +1,290 @@
+{
+  // Command Guard configuration for Claude Code PreToolUse hook.
+  //
+  // Pattern syntax:
+  //   * matches any sequence of characters (including spaces, flags, arguments)
+  //   Patterns are matched against the normalized command (bypass prefixes stripped)
+  //   and also against a flag-stripped skeleton, so "git commit*" matches
+  //   "git -C /path commit --amend" too.
+  //
+  // Rule precedence: deny > ask > allow (default when nothing matches).
+  "rules": {
+    "ask": [
+      // -----------------------------------------------------------------------
+      // General safety net
+      // -----------------------------------------------------------------------
+      "rm *",
+      "npm *",
+      "sudo *",
+
+      // -----------------------------------------------------------------------
+      // Git — state-changing operations only
+      // -----------------------------------------------------------------------
+      "git commit*",
+      "git push*",
+
+      // -----------------------------------------------------------------------
+      // Anyscale — auth
+      // -----------------------------------------------------------------------
+      "anyscale login*",
+      "anyscale logout*",
+
+      // Anyscale — cloud (state-changing)
+      "anyscale cloud register*",
+      "anyscale cloud edit*",
+      "anyscale cloud update*",
+      "anyscale cloud delete*",
+      "anyscale cloud set-default*",
+      "anyscale cloud add-collaborators*",
+      "anyscale cloud setup*",
+      "anyscale cloud terminate-system-cluster*",
+      "anyscale cloud config*",
+      "anyscale cloud resource*",
+
+      // Anyscale — cluster (state-changing)
+      "anyscale cluster start*",
+      "anyscale cluster terminate*",
+      "anyscale cluster archive*",
+
+      // Anyscale — cluster-env (state-changing)
+      "anyscale cluster-env build*",
+      "anyscale cluster-env archive*",
+
+      // Anyscale — compute-config (state-changing)
+      "anyscale compute-config create*",
+      "anyscale compute-config archive*",
+
+      // Anyscale — image (state-changing)
+      "anyscale image build*",
+      "anyscale image register*",
+
+      // Anyscale — job (state-changing)
+      "anyscale job submit*",
+      "anyscale job terminate*",
+      "anyscale job archive*",
+      "anyscale job tags*",
+
+      // Anyscale — job-queue (state-changing)
+      "anyscale job-queue update*",
+      "anyscale job-queue tags*",
+
+      // Anyscale — machine (state-changing)
+      "anyscale machine delete*",
+
+      // Anyscale — machine-pool (state-changing)
+      "anyscale machine-pool create*",
+      "anyscale machine-pool delete*",
+      "anyscale machine-pool update*",
+      "anyscale machine-pool attach*",
+      "anyscale machine-pool detach*",
+
+      // Anyscale — organization-invitation (state-changing)
+      "anyscale organization-invitation create*",
+      "anyscale organization-invitation delete*",
+
+      // Anyscale — project (state-changing)
+      "anyscale project create*",
+      "anyscale project delete*",
+      "anyscale project add-collaborators*",
+
+      // Anyscale — resource-quota (state-changing)
+      "anyscale resource-quota create*",
+      "anyscale resource-quota delete*",
+      "anyscale resource-quota enable*",
+      "anyscale resource-quota disable*",
+
+      // Anyscale — schedule (state-changing)
+      "anyscale schedule apply*",
+      "anyscale schedule create*",
+      "anyscale schedule update*",
+      "anyscale schedule pause*",
+      "anyscale schedule resume*",
+      "anyscale schedule run*",
+
+      // Anyscale — service (state-changing)
+      "anyscale service deploy*",
+      "anyscale service rollout*",
+      "anyscale service rollback*",
+      "anyscale service terminate*",
+      "anyscale service delete*",
+      "anyscale service archive*",
+      "anyscale service tags*",
+
+      // Anyscale — service-account (state-changing)
+      "anyscale service-account create*",
+      "anyscale service-account create-api-key*",
+      "anyscale service-account delete*",
+
+      // Anyscale — user (state-changing)
+      "anyscale user batch-create*",
+
+      // Anyscale — workspace (state-changing)
+      "anyscale workspace tags*",
+      "anyscale workspace terminate*",
+      "anyscale workspace push*",
+
+      // Anyscale — workspace_v2 (state-changing)
+      "anyscale workspace_v2 create*",
+      "anyscale workspace_v2 update*",
+      "anyscale workspace_v2 start*",
+      "anyscale workspace_v2 terminate*",
+      "anyscale workspace_v2 push*",
+      "anyscale workspace_v2 run_command*",
+
+      // -----------------------------------------------------------------------
+      // Jira via acli (state-changing)
+      // -----------------------------------------------------------------------
+      "acli jira workitem create*",
+      "acli jira workitem edit*",
+      "acli jira workitem assign*",
+      "acli jira workitem comment create*",
+      "acli jira workitem delete*",
+      "acli jira workitem link*",
+      "acli jira workitem unlink*",
+      "acli jira workitem label*",
+      "acli jira workitem vote*",
+      "acli jira workitem watch*",
+      "acli jira workitem move*",
+      "acli jira workitem clone*",
+      "acli jira sprint create*",
+      "acli jira sprint update*",
+      "acli jira sprint delete*",
+      "acli jira sprint close*",
+      "acli jira sprint start*",
+      "acli jira sprint move*",
+
+      // -----------------------------------------------------------------------
+      // GitHub CLI — state-changing operations
+      // -----------------------------------------------------------------------
+
+      // Pull requests
+      "gh pr create*",
+      "gh pr merge*",
+      "gh pr close*",
+      "gh pr reopen*",
+      "gh pr edit*",
+      "gh pr review*",
+      "gh pr comment*",
+      "gh pr ready*",
+      "gh pr lock*",
+      "gh pr unlock*",
+
+      // Releases
+      "gh release create*",
+      "gh release edit*",
+      "gh release delete*",
+      "gh release upload*",
+
+      // Workflows & runs
+      "gh workflow run*",
+      "gh workflow enable*",
+      "gh workflow disable*",
+      "gh run rerun*",
+      "gh run cancel*",
+      "gh run delete*",
+
+      // Repos
+      "gh repo create*",
+      "gh repo delete*",
+      "gh repo fork*",
+      "gh repo rename*",
+      "gh repo archive*",
+      "gh repo unarchive*",
+      "gh repo edit*",
+      "gh repo transfer*",
+      "gh repo deploy-key*",
+
+      // Issues
+      "gh issue create*",
+      "gh issue close*",
+      "gh issue reopen*",
+      "gh issue edit*",
+      "gh issue comment*",
+      "gh issue pin*",
+      "gh issue unpin*",
+      "gh issue lock*",
+      "gh issue unlock*",
+      "gh issue delete*",
+      "gh issue transfer*",
+
+      // Labels, secrets, variables, environments
+      "gh label create*",
+      "gh label edit*",
+      "gh label delete*",
+      "gh label clone*",
+      "gh secret set*",
+      "gh secret delete*",
+      "gh variable set*",
+      "gh variable delete*",
+      "gh env*",
+
+      // Raw API — mutating methods only
+      "gh api* --method POST*",
+      "gh api* --method PUT*",
+      "gh api* --method PATCH*",
+      "gh api* --method DELETE*",
+
+      // -----------------------------------------------------------------------
+      // Google Workspace via gws — state-changing operations
+      // -----------------------------------------------------------------------
+
+      // Auth
+      "gws auth login*",
+      "gws auth logout*",
+
+      // Gmail — messages
+      "gws gmail users messages send*",
+      "gws gmail users messages insert*",
+      "gws gmail users messages delete*",
+      "gws gmail users messages batchDelete*",
+      "gws gmail users messages batchModify*",
+      "gws gmail users messages modify*",
+      "gws gmail users messages trash*",
+      "gws gmail users messages untrash*",
+      "gws gmail users messages import*",
+
+      // Gmail — drafts
+      "gws gmail users drafts create*",
+      "gws gmail users drafts update*",
+      "gws gmail users drafts delete*",
+      "gws gmail users drafts send*",
+
+      // Gmail — labels
+      "gws gmail users labels create*",
+      "gws gmail users labels update*",
+      "gws gmail users labels patch*",
+      "gws gmail users labels delete*",
+
+      // Gmail — threads
+      "gws gmail users threads delete*",
+      "gws gmail users threads modify*",
+      "gws gmail users threads trash*",
+      "gws gmail users threads untrash*",
+
+      // Gmail — misc
+      "gws gmail users settings*",
+      "gws gmail users stop*",
+      "gws gmail users watch*",
+
+      // Sheets
+      "gws sheets spreadsheets create*",
+      "gws sheets spreadsheets batchUpdate*",
+      "gws sheets spreadsheets values update*",
+      "gws sheets spreadsheets values batchUpdate*",
+      "gws sheets spreadsheets values append*",
+      "gws sheets spreadsheets values clear*",
+      "gws sheets spreadsheets values batchClear*",
+      "gws sheets spreadsheets sheets*",
+      "gws sheets spreadsheets developerMetadata*",
+
+      // -----------------------------------------------------------------------
+      // Datadog API via curl — mutating methods only
+      // -----------------------------------------------------------------------
+      "curl* -X POST*api.datadoghq.com*",
+      "curl* -X PUT*api.datadoghq.com*",
+      "curl* -X PATCH*api.datadoghq.com*",
+      "curl* -X DELETE*api.datadoghq.com*"
+    ],
+    "deny": []
+  }
+}

@@ -502,3 +502,10 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then export PATH="$HOME/.local/bin
 # >>> direnv bootstrap managed by local-dev >>>
 eval "$(direnv hook zsh)"
 # <<< end direnv bootstrap managed by local-dev <<<
+
+# bun completions
+[ -s "/Users/alexandre.mendonca/.bun/_bun" ] && source "/Users/alexandre.mendonca/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
