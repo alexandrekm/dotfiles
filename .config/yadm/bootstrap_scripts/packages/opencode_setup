@@ -25,10 +25,27 @@ install_opencode_global_packages() {
     bun install -g cc-safety-net
 }
 
+install_plannotator() {
+    if command_exists plannotator; then
+        print_status "green" "plannotator already installed"
+        return 0
+    fi
+
+    print_status "blue" "Installing plannotator..."
+    curl -fsSL https://plannotator.ai/install.sh | bash
+
+    if command_exists plannotator; then
+        print_status "green" "plannotator installed successfully"
+    else
+        print_status "red" "Failed to install plannotator"
+    fi
+}
+
 # Main execution
 main() {
     setup_opencode
     install_opencode_global_packages
+    install_plannotator
 }
 
 # Run if executed directly
