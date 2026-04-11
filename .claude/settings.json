@@ -1,5 +1,4 @@
 {
-  "auto_approve_tools": true,
   "attribution": {
     "commit": "",
     "pr": ""
@@ -128,5 +127,7 @@
         "repo": "backnotprop/plannotator"
       }
     }
-  }
+  },
+  "auto_approve_tools": true,
+  "model": "sonnet[1m]"
 }

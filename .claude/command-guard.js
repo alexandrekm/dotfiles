@@ -86,6 +86,18 @@ function stripOnce(cmd) {
 }
 
 /**
+ * Collapse shell line-continuation sequences: backslash + newline (plus any
+ * leading whitespace on the continuation line) → single space.
+ * This mirrors how a POSIX shell joins physical lines before execution, so
+ *   git add foo && \
+ *       git commit -m "msg"
+ * becomes "git add foo && git commit -m "msg"" and splits correctly.
+ */
+function collapseContinuations(cmd) {
+  return cmd.replace(/\\\n\s*/g, " ");
+}
+
+/**
  * Repeatedly strip bypass prefixes until no more apply (fixed-point).
  */
 function normalize(cmd) {
@@ -269,6 +281,31 @@ function loadConfig() {
 // Decision
 // ---------------------------------------------------------------------------
 
+const C = {
+  reset:  "\x1b[0m",
+  bold:   "\x1b[1m",
+  dim:    "\x1b[2m",
+  red:    "\x1b[31m",
+  yellow: "\x1b[33m",
+  cyan:   "\x1b[36m",
+  white:  "\x1b[97m",
+};
+
+function formatReason(decision, cmd, pattern) {
+  const isAsk  = decision === "ask";
+  const accent = isAsk ? C.yellow : C.red;
+  const icon   = isAsk ? "⚠" : "✗";
+  const label  = isAsk ? "Review Required" : "Blocked";
+  const verb   = isAsk ? "ask" : "deny";
+
+  const header  = `${accent}${C.bold}${icon}  Command Guard${C.reset}${C.dim} — ${label}${C.reset}`;
+  const sep     = `${C.dim}${"─".repeat(48)}${C.reset}`;
+  const cmdLine = `  ${C.cyan}Command${C.reset}  ${C.white}${cmd}${C.reset}`;
+  const ruleLine= `  ${C.cyan}Rule   ${C.reset}  ${verb} › ${accent}'${pattern}'${C.reset}`;
+
+  return `\n${header}\n${sep}\n${cmdLine}\n${ruleLine}\n`;
+}
+
 function decide(normalizedCmd, config) {
   const skeleton = flagStripped(normalizedCmd);
   log("debug", "evaluating command", { normalized: normalizedCmd, skeleton });
@@ -278,7 +315,7 @@ function decide(normalizedCmd, config) {
     if (matchesPattern(pattern, normalizedCmd, skeleton)) {
       const result = {
         permissionDecision:       "deny",
-        permissionDecisionReason: `Custom Guard: '${normalizedCmd}' blocked by deny rule '${pattern}'.`,
+        permissionDecisionReason: formatReason("deny", normalizedCmd, pattern),
       };
       log("info", "decision: deny", { normalized: normalizedCmd, matchedPattern: pattern });
       return result;
@@ -290,7 +327,7 @@ function decide(normalizedCmd, config) {
     if (matchesPattern(pattern, normalizedCmd, skeleton)) {
       const result = {
         permissionDecision:       "ask",
-        permissionDecisionReason: `Custom Guard: '${normalizedCmd}' matched ask rule '${pattern}'.`,
+        permissionDecisionReason: formatReason("ask", normalizedCmd, pattern),
       };
       log("info", "decision: ask", { normalized: normalizedCmd, matchedPattern: pattern });
       return result;
@@ -313,7 +350,7 @@ function main() {
   process.stdin.on("end", () => {
     try {
       const payload = JSON.parse(raw);
-      const command = (payload.tool_input && payload.tool_input.command) || "";
+      const command = collapseContinuations((payload.tool_input && payload.tool_input.command) || "");
 
       log("debug", "hook invoked", { toolName: payload.tool_name, rawCommand: command });
 
