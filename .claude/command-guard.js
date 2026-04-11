@@ -99,6 +99,55 @@ function normalize(cmd) {
 }
 
 // ---------------------------------------------------------------------------
+// Command splitting — break chained commands into individual subcommands
+// ---------------------------------------------------------------------------
+
+/**
+ * Split a compound command on shell operators && || ;
+ * Respects single and double quoting so operators inside strings are ignored.
+ * Returns an array of trimmed subcommand strings.
+ */
+function splitCommands(cmd) {
+  const parts   = [];
+  let current   = "";
+  let inSingle  = false;
+  let inDouble  = false;
+  let i         = 0;
+
+  while (i < cmd.length) {
+    const c = cmd[i];
+
+    if (c === "'" && !inDouble) { inSingle = !inSingle; current += c; i++; continue; }
+    if (c === '"' && !inSingle) { inDouble = !inDouble; current += c; i++; continue; }
+
+    // Inside a double-quoted string, honour backslash escapes
+    if (c === "\\" && inDouble) {
+      current += c; i++;
+      if (i < cmd.length) { current += cmd[i]; i++; }
+      continue;
+    }
+
+    if (!inSingle && !inDouble) {
+      // && and ||
+      if ((c === "&" && cmd[i + 1] === "&") || (c === "|" && cmd[i + 1] === "|")) {
+        if (current.trim()) parts.push(current.trim());
+        current = ""; i += 2; continue;
+      }
+      // ;
+      if (c === ";") {
+        if (current.trim()) parts.push(current.trim());
+        current = ""; i++; continue;
+      }
+    }
+
+    current += c; i++;
+  }
+
+  if (current.trim()) parts.push(current.trim());
+  return parts.length > 0 ? parts : [cmd.trim()];
+}
+
+// ---------------------------------------------------------------------------
 // Flag-stripped skeleton
 //
 // Removes tokens that look like flags (-x, --foo, --foo=bar) and their
@@ -274,13 +323,34 @@ function main() {
         return;
       }
 
+      const config = loadConfig();
+
+      // Normalize the full command first (strips cd-prefix / sh-c / eval wrappers),
+      // then split on && || ; and evaluate each subcommand independently.
+      // The most restrictive result (deny > ask > allow) wins.
       const normalized = normalize(command);
       if (normalized !== command.trim()) {
         log("debug", "command normalized", { original: command.trim(), normalized });
       }
 
-      const config = loadConfig();
-      const inner  = decide(normalized, config);
+      const parts = splitCommands(normalized);
+      const rank  = { allow: 0, ask: 1, deny: 2 };
+      let inner   = { permissionDecision: "allow" };
+
+      if (parts.length === 1) {
+        inner = decide(normalized, config);
+      } else {
+        log("debug", "compound command — evaluating parts", { count: parts.length, parts });
+        for (const part of parts) {
+          const partNorm   = normalize(part);   // handles sh-c / eval inside a chain
+          const partResult = decide(partNorm, config);
+          if (rank[partResult.permissionDecision] > rank[inner.permissionDecision]) {
+            inner = partResult;
+          }
+          if (inner.permissionDecision === "deny") break;
+        }
+        log("info", "compound command decision", { normalized, decision: inner.permissionDecision });
+      }
 
       // Claude Code requires permissionDecision nested inside hookSpecificOutput
       const result = inner.permissionDecision === "allow"
