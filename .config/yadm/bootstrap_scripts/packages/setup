@@ -118,6 +118,7 @@ install_macos_packages() {
         "zoxide"
         "ripgrep"
         "yazi"
+        "dockutil"
     )
     
     for package in "${packages[@]}"; do
@@ -173,6 +174,17 @@ install_cmux() {
         print_status "green" "cmux CLI symlink created"
     else
         print_status "green" "cmux CLI symlink already exists"
+    fi
+
+    if command_exists dockutil; then
+        if ! dockutil --list | grep -q "cmux"; then
+            print_status "blue" "Adding cmux to Dock..."
+            dockutil --add "/Applications/cmux.app" --no-restart
+            killall Dock
+            print_status "green" "cmux added to Dock"
+        else
+            print_status "green" "cmux already in Dock"
+        fi
     fi
 }
 
